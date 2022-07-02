@@ -1,2 +1,2 @@
-underpants~=0.2.0
+underpants~=0.2.3
 pytest

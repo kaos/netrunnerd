@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import cast
+from typing import Iterator, cast
 
+from netrunner.core.error import GameError
 from netrunner.core.player import Corp, Player, Role, Runner
 
 
@@ -35,3 +36,10 @@ class Game:
             if player.role == role:
                 return player
         raise RuntimeError(f"No player with role: {role}.")
+
+    def check(self) -> Iterator[GameError]:
+        for player in self.players:
+            yield from player.check()
+
+    def setup(self) -> None:
+        pass

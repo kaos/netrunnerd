@@ -34,7 +34,7 @@ class Card:
 
     faction: Faction
     name: str
-    influence: Literal[0, 1, 2, 3, 4, 5]
+    influence: Literal[0, 1, 2, 3, 4, 5] | None
 
     @classmethod
     def from_card_data(cls, data: CardData, **kwargs) -> Card:
@@ -42,7 +42,7 @@ class Card:
             dict(
                 faction=cls._get_faction(data["side_code"], data["faction_code"]),
                 name=data["stripped_title"],
-                influence=data.get("faction_cost", 0),
+                influence=data.get("faction_cost"),
             )
         )
         return cls(**kwargs)

@@ -8,6 +8,9 @@ class RunnerFaction(Enum):
     Anarch = "anarch"
     Criminal = "criminal"
     Shaper = "shaper"
+    Adam = "adam"
+    Apex = "apex"
+    Sunny_Lebeau = "sunny-lebeau"
 
 
 class CorpFaction(Enum):
