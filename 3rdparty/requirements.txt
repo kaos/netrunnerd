@@ -1,2 +1,4 @@
+click
 underpants~=0.2.3
+pycapnp
 pytest
