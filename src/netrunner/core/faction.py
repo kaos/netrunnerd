@@ -1,10 +1,12 @@
 from __future__ import annotations
 
-from enum import Enum
-from typing import Union
+from typing import Union, cast
+
+from netrunner.core.enum import CorpEnum, RunnerEnum
+from netrunner.util import EnumUnion
 
 
-class RunnerFaction(Enum):
+class RunnerFaction(RunnerEnum):
     Anarch = "anarch"
     Criminal = "criminal"
     Shaper = "shaper"
@@ -13,7 +15,7 @@ class RunnerFaction(Enum):
     Sunny_Lebeau = "sunny-lebeau"
 
 
-class CorpFaction(Enum):
+class CorpFaction(CorpEnum):
     Haas_Bioroid = "haas-bioriod"
     Jinteki = "jinteki"
     NBN = "nbn"
@@ -21,3 +23,7 @@ class CorpFaction(Enum):
 
 
 Faction = Union[CorpFaction, RunnerFaction]
+
+
+def get_faction(side: str, value: str) -> Faction:
+    return cast(Faction, EnumUnion.find_value(Faction, value, side=side))
