@@ -10,7 +10,7 @@ import json
 import logging
 import pkgutil
 from collections import defaultdict
-from typing import Any, Dict, TypeVar, overload
+from typing import Any, Dict, TypeVar, cast, overload
 
 from netrunner.core.card import Card, CorpCard, RunnerCard, get_card_type
 from netrunner.core.error import GameError
@@ -52,7 +52,7 @@ def get_card_data(*, code: str | None = None, name: str | None = None) -> CardDa
 
     for card in _get_cardpool()["data"]:
         if value == card[key]:
-            return card
+            return cast(CardData, card)
 
     raise DBError(f"Unknown card {key}: {value!r}.")
 

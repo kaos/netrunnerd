@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import ClassVar, Literal, Union, cast
+from typing import ClassVar, Iterator, Literal, Type, Union, cast
 
 from netrunner.core.enum import CorpEnum, RunnerEnum
 from netrunner.core.faction import Faction
@@ -48,7 +48,7 @@ class Card:
         raise NotImplementedError(f"No `Card` implementation for {card_type}.")
 
     @classmethod
-    def __subtypes(cls):
+    def __subtypes(cls) -> Iterator[Type[Card]]:
         for sub in cls.__subclasses__():
             if hasattr(sub, "type"):
                 yield sub
