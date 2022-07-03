@@ -18,11 +18,16 @@ from netrunner.util import ainput
 @click.option("--address", default="127.0.0.1")
 @click.option("--port", type=int, default=7374)
 @click.option("--history-file", default="~/.netrunner-history")
-def main(address, port, history_file):
+@click.option("--nick")
+def main(address, port, history_file, nick):
     if history_file:
         init_history(history_file)
 
-    asyncio.run(client_connect(address, port))
+    init_args = []
+    if nick:
+        init_args.append(("/nick", nick))
+
+    asyncio.run(client_connect(address, port, init_args))
 
 
 def init_history(history_file: str) -> None:
@@ -37,11 +42,14 @@ def init_history(history_file: str) -> None:
     atexit.register(readline.write_history_file, histfile)
 
 
-async def client_connect(address, port):
+async def client_connect(address, port, init_args):
     connection = await AsyncClient.connect(address, port, bootstrap_cls=api.schema.NetrunnerLobby)
-    lobby = connection.interface
-    myself = await lobby.myself().a_wait()
-    coroutines = [run(NetrunnerLobby(root=lobby, client_info=myself.info))]
+    root = connection.interface
+    myself = await root.myself().a_wait()
+    lobby = NetrunnerLobby(root=root, client_info=myself.info)
+    for args in init_args:
+        await apply_args(lobby, lobby_cmd, args)
+    coroutines = [run(lobby)]
     tasks = asyncio.gather(*coroutines, return_exceptions=True)
     await tasks
 
@@ -56,12 +64,17 @@ async def run(lobby):
             break
         if args[0] == "help":
             args[0] = "--help"
-        try:
-            rc = cmd(prog_name=cmd.name, args=args, obj=lobby, standalone_mode=False)
-            if inspect.isawaitable(rc):
-                rc = await rc
-        except Exception as e:
-            click.echo(f"ERROR in {cmd.name}: {e}")
+
+        await apply_args(lobby, cmd, args)
+
+
+async def apply_args(lobby, cmd, args):
+    try:
+        res = cmd(prog_name=cmd.name, args=args, obj=lobby, standalone_mode=False)
+        if inspect.isawaitable(res):
+            await res
+    except Exception as e:
+        click.echo(f"ERROR in {cmd.name}: {e}")
 
 
 if __name__ == "__main__":
