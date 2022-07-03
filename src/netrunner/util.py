@@ -4,7 +4,9 @@ import asyncio
 import shlex
 from concurrent.futures import ThreadPoolExecutor
 from enum import Enum
-from typing import Any, Literal, Sequence, TypeVar, Union, cast, get_args, overload
+from typing import Any, Dict, Literal, Mapping, Sequence, TypeVar, Union, cast, get_args, overload
+
+import click
 
 T = TypeVar("T")
 
@@ -43,3 +45,21 @@ async def ainput(prompt: str = "", split: bool = True):
     with ThreadPoolExecutor(1, "AsyncInput") as executor:
         s = await asyncio.get_event_loop().run_in_executor(executor, input, prompt)
         return s if not split else shlex.split(s)
+
+
+class cli_command:
+    registry: Dict[str, click.Command] = {}
+    command_names: list[str] = []
+
+    name: str
+    kwargs: Mapping
+
+    def __init__(self, name: str, **kwargs):
+        self.name = name
+        self.kwargs = kwargs
+
+    def __call__(self, f) -> click.Command:
+        cmd = cast(click.Command, click.command(self.name, **self.kwargs)(f))
+        cli_command.registry[self.name] = cmd
+        cli_command.command_names.append(self.name)
+        return cmd

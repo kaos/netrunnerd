@@ -46,18 +46,17 @@ async def client_connect(address, port, init_args):
     connection = await AsyncClient.connect(address, port, bootstrap_cls=api.schema.NetrunnerLobby)
     root = connection.interface
     myself = await root.myself().a_wait()
-    lobby = NetrunnerLobby(root=root, client_info=myself.info)
+    lobby = NetrunnerLobby(root=root, client_info=myself.info, cmd=lobby_cmd)
     for args in init_args:
-        await apply_args(lobby, lobby_cmd, args)
+        await apply_args(lobby, args)
     coroutines = [run(lobby)]
     tasks = asyncio.gather(*coroutines, return_exceptions=True)
     await tasks
 
 
 async def run(lobby):
-    cmd = lobby_cmd
     while True:
-        args = await ainput(f"{cmd.name}> ")
+        args = await ainput(f"{lobby.cmd.name}> ")
         if not args:
             continue
         if args == ["q"]:
@@ -65,16 +64,16 @@ async def run(lobby):
         if args[0] == "help":
             args[0] = "--help"
 
-        await apply_args(lobby, cmd, args)
+        await apply_args(lobby, args)
 
 
-async def apply_args(lobby, cmd, args):
+async def apply_args(lobby, args):
     try:
-        res = cmd(prog_name=cmd.name, args=args, obj=lobby, standalone_mode=False)
+        res = lobby.cmd(prog_name=lobby.cmd.name, args=args, obj=lobby, standalone_mode=False)
         if inspect.isawaitable(res):
             await res
     except Exception as e:
-        click.echo(f"ERROR in {cmd.name}: {e}")
+        click.echo(f"ERROR in {lobby.cmd.name}: {e}")
 
 
 if __name__ == "__main__":
