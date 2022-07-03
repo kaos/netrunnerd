@@ -3,9 +3,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 import click
+from netrunner.util import cli_command
 
 from netrunner import api
-from netrunner.util import cli_command
 
 command_argument = click.argument(
     "command",
@@ -30,10 +30,11 @@ class NetrunnerLobby:
 @cli_command("lobby")
 @click.option("/nick", help="Change nick name")
 @click.option("/whoami", is_flag=True, help="Check nick name")
+@click.option("/list", "list_games", type=int, help="List games page")
+@click.option("/new", "new_game", help="Create new game", type=click.Choice(("corp", "runner")))
 @command_argument
 @click.pass_obj
-async def lobby_cmd(lobby, nick, whoami, command):
-    click.echo(f"Lobby cmd: {lobby}")
+async def lobby_cmd(lobby, nick, whoami, list_games, new_game, command):
     lobby.switch_cmd(command)
 
     if nick:
@@ -43,6 +44,19 @@ async def lobby_cmd(lobby, nick, whoami, command):
     if whoami:
         nick = (await lobby.client_info.getNick().a_wait()).nick
         click.echo(f"you are known as {nick!r}")
+
+    if new_game:
+        player = (await lobby.root.newGame(role=new_game).a_wait()).player
+        click.echo(f"created game for {await player.getInfo().a_wait()}")
+        if not command:
+            lobby.switch_cmd("game")
+
+    if list_games:
+        res = await lobby.root.listGames(page=list_games).a_wait()
+        for game in res.games:
+            players = await game.getPlayers().a_wait()
+            click.echo(f" - game: corp={players.corp_nick}, runner={players.runner_nick}")
+        click.echo(f" = {res.totalCount} games in total")
 
 
 @cli_command("game")
