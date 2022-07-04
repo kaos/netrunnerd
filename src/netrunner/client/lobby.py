@@ -3,9 +3,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 import click
-from netrunner.util import cli_command
 
 from netrunner import api
+from netrunner.util import cli_command
 
 command_argument = click.argument(
     "command",
@@ -54,8 +54,7 @@ async def lobby_cmd(lobby, nick, whoami, list_games, new_game, command):
     if list_games:
         res = await lobby.root.listGames(page=list_games).a_wait()
         for game in res.games:
-            players = await game.getPlayers().a_wait()
-            click.echo(f" - game: corp={players.corp_nick}, runner={players.runner_nick}")
+            click.echo(f" - game: {game}")
         click.echo(f" = {res.totalCount} games in total")
 
 
