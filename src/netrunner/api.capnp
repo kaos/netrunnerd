@@ -5,12 +5,15 @@ interface NetrunnerLobby {
   listGames @1 (page :UInt32 = 1, pageSize :UInt32 = 25) -> (games :List(Game), totalCount :UInt32);
   newGame @2 (role :Role) -> (player :Player);
   joinGame @3 (role :Role, gameId :Game.Id) -> (player :Player);
+
+  listDecks @4 (decklist :Text) -> (decks :List(Deck));
 }
 
 interface ClientInfo {
   getNick @0 () -> (nick :Text);
   setNick @1 (nick :Text, password :Text = "");
   registerNick @2 (password :Text);
+  selectDeck @3 (deck :Deck);
 }
 
 interface Player {
@@ -51,9 +54,8 @@ struct Game {
 
   struct Participant {
     nickName @0 :Text;
-    identity @1 :Card;
-    deck @2 :List(Card);
-    cards @3 :List(CardState);
+    deck @1 :Deck;
+    cards @2 :List(CardState);
   }
 
   struct CardState {
@@ -71,6 +73,17 @@ struct Game {
     bank @5;
     setAside @6;
     removedFromGame @7;
+  }
+}
+
+struct Deck {
+  id @0 :Text;
+  name @1 :Text;
+  cards @2 :List(DeckCard);
+
+  struct DeckCard {
+    card @0 :Card;
+    count @1 :UInt8;
   }
 }
 

@@ -1,6 +1,6 @@
 python_sources(
     overrides={
-        "lobby.py": dict(dependencies=["src/netrunner/api.capnp:capnp"]),
+        "main.py": dict(dependencies=["src/netrunner/engine"]),
     },
 )
 

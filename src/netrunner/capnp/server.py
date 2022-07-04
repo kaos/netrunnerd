@@ -50,7 +50,7 @@ class AsyncServer:
                 # Must be a wait_for so we don't block on read()
                 data = await asyncio.wait_for(self.reader.read(4096), timeout=0.1)
             except asyncio.TimeoutError:
-                logger.debug(f"{self}: myreader timeout.")
+                logger.trace(f"{self}: myreader timeout.")
                 continue
             except Exception as err:
                 logger.error(f"{self}: Unknown myreader err: {err}")
@@ -66,7 +66,7 @@ class AsyncServer:
                 data = await asyncio.wait_for(self.server.read(4096), timeout=0.1)
                 self.writer.write(data.tobytes())
             except asyncio.TimeoutError:
-                logger.debug(f"{self}: mywriter timeout.")
+                logger.trace(f"{self}: mywriter timeout.")
                 continue
             except Exception as err:
                 logger.error(f"{self}: Unknown mywriter err: {err}")

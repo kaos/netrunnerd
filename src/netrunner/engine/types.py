@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from netrunner.core.game import Game
+from typing import Mapping, Any
 
 
 @dataclass(frozen=True)
@@ -14,3 +15,17 @@ class BeginGame:
 class GameState:
     game: Game
     turn: int
+
+
+@dataclass(frozen=True)
+class DecklistRequest:
+    url: str
+
+
+@dataclass(frozen=True)
+class Decklist:
+    total: int
+    success: bool
+    version_number: str
+    last_updated: str
+    data: tuple[Mapping[str, Any]]

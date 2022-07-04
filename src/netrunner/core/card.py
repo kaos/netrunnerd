@@ -70,3 +70,40 @@ class CorpIdentityCard(IdentityCard):
 @dataclass(frozen=True)
 class RunnerIdentityCard(IdentityCard):
     type = RunnerCard.identity
+
+
+@dataclass(frozen=True)
+class AgendaCard(Card):
+    type = CorpCard.agenda
+
+@dataclass(frozen=True)
+class AssetCard(Card):
+    type = CorpCard.asset
+
+@dataclass(frozen=True)
+class IceCard(Card):
+    type = CorpCard.ice
+
+@dataclass(frozen=True)
+class OperationCard(Card):
+    type = CorpCard.operation
+
+@dataclass(frozen=True)
+class UpgradeCard(Card):
+    type = CorpCard.upgrade
+
+@dataclass(frozen=True)
+class EventCard(Card):
+    type = RunnerCard.event
+
+@dataclass(frozen=True)
+class HardwareCard(Card):
+    type = RunnerCard.hardware
+
+@dataclass(frozen=True)
+class ProgramCard(Card):
+    type = RunnerCard.program
+
+@dataclass(frozen=True)
+class ResourceCard(Card):
+    type = RunnerCard.resource

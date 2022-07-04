@@ -21,4 +21,5 @@ Spectator = schema.Spectator
 GameSubscriber = schema.GameSubscriber
 Role = schema.Role
 Game = schema.Game
+Deck = schema.Deck
 Card = schema.Card

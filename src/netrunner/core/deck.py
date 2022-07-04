@@ -3,7 +3,7 @@ from __future__ import annotations
 import random
 from dataclasses import dataclass
 from typing import Iterator, Sequence, TypeVar, overload
-
+import itertools
 from netrunner.core.card import Card, IdentityCard
 from netrunner.core.error import GameError
 
@@ -25,9 +25,18 @@ class DeckCardLimitError(DeckError):
 
 @dataclass(frozen=True)
 class Deck:
+    id: str
+    name: str
     identity: IdentityCard
-    cards: tuple[Card, ...]
-    additional: tuple[Card, ...] = ()
+    cards: tuple[tuple[int, Card], ...]
+
+    @classmethod
+    def create(cls, cards: Sequence[tuple[int, Card]], **kwargs) -> Deck:
+        return cls(
+            identity=next(card for _, card in cards if isinstance(card, IdentityCard)),
+            cards=tuple((n, card) for n, card in cards if not isinstance(card, IdentityCard)),
+            **kwargs
+        )
 
     @property
     def is_legal(self) -> bool:
@@ -50,7 +59,7 @@ class Deck:
 
     def shuffle(self, cards=None) -> Iterator:
         if cards is None:
-            cards = self.cards
+            cards = itertools.chain.from_iterable(n * [card] for n, card in self.cards)
         items = list(cards)
         random.shuffle(items)
         yield from items

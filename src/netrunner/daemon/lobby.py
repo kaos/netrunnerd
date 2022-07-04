@@ -7,13 +7,19 @@ from netrunner import api
 from netrunner.daemon.client import ClientInfoImpl
 from netrunner.daemon.game import GameID, GameState
 from netrunner.daemon.player import PlayerImpl
+from underpants.engine import RulesEngine
+from typing import ClassVar
+from netrunner.daemon.deck import Deck
+
 
 logger = logging.getLogger(__name__)
 
 
 class NetrunnerLobbyImpl(api.NetrunnerLobby.Server):
+    engine: ClassVar[RulesEngine]
+    games: ClassVar[dict[GameID, GameState]] = {}
+
     client_info: ClientInfoImpl
-    games: dict[GameID, GameState] = {}
 
     def __init__(self):
         logger.info("client connected")
@@ -40,3 +46,7 @@ class NetrunnerLobbyImpl(api.NetrunnerLobby.Server):
     def joinGame(self, role: api.Role, gameId: api.Game.Id, **kwargs) -> PlayerImpl:
         state = self.games[GameID(**gameId.to_dict())]
         return PlayerImpl.join_game(role, state, self.client_info)
+
+    def listDecks(self, decklist: str, **kwargs) -> list[api.Deck]:
+        res = Deck.list_decks(self.engine, decklist)
+        return [deck.serialize() for deck in Deck.iter_decks(res)]

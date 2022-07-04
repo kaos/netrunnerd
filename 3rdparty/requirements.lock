@@ -12,6 +12,7 @@
 //     "click",
 //     "pycapnp",
 //     "pytest",
+//     "requests",
 //     "underpants~=0.2.3"
 //   ]
 // }
@@ -1259,6 +1260,7 @@
     "click",
     "pycapnp",
     "pytest",
+    "requests",
     "underpants~=0.2.3"
   ],
   "requires_python": [
