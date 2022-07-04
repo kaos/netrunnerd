@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from typing import ClassVar, Iterator
 
 from netrunner import api
@@ -15,23 +16,29 @@ class PlayerImpl(api.Player.Server):
     state: GameState
     nick: str
 
-    @staticmethod
-    def create_game(role: api.Role, client: ClientInfoImpl) -> PlayerImpl:
-        if role == api.Role.corp:
-            cls = CorpImpl
-        elif role == api.Role.runner:
-            cls = RunnerImpl
-        elif role == api.Role.spectator:
-            cls = SpectatorImpl
-        else:
-            raise ValueError(f"Invalid role: {role!r}")
+    @classmethod
+    def get_impl(cls, role: api.Role) -> type[PlayerImpl]:
+        for impl in cls.__subclasses__():
+            if impl.role == role:
+                return impl
+        raise NotImplementedError(f"No player implementation for role: {role!r}")
 
+    @classmethod
+    def join_game(cls, role: api.Role, state: GameState, client: ClientInfoImpl) -> PlayerImpl:
+        role = state.join(client.nick, role)
+        impl = cls.get_impl(role)
+        state.game = replace(state.game, players=(*state.game.players, *impl.create_players()))
+        return impl(state, client.nick)
+
+    @classmethod
+    def create_game(cls, role: api.Role, client: ClientInfoImpl) -> PlayerImpl:
+        impl = cls.get_impl(role)
         state = GameState.create(
-            game=Game(players=tuple(cls.create_players())),
+            game=Game(players=tuple(impl.create_players())),
             nick=client.nick,
             role=role,
         )
-        return cls(state, client.nick)
+        return impl(state, client.nick)
 
     @staticmethod
     def create_players() -> Iterator[player.Player]:

@@ -1,12 +1,17 @@
 from __future__ import annotations
 
+import logging
+import math
 from dataclasses import dataclass
+from datetime import datetime
 
 import click
 
 from netrunner import api
 from netrunner.util import cli_command
 
+logger = logging.getLogger(__name__)
+PAGE_SIZE = 25
 command_argument = click.argument(
     "command",
     nargs=1,
@@ -15,28 +20,62 @@ command_argument = click.argument(
 )
 
 
+def parse_game_id(ctx, param, value):
+    if not value:
+        return None
+    try:
+        seq, use_pool, pool = value.partition(":")
+        return dict(seq=int(seq), pool=pool if use_pool else str(datetime.now().date()))
+    except ValueError:
+        raise click.BadParameter(f"Expected game id `SEQ[:POOL]`, but got {value!r}.")
+
+
 @dataclass
 class NetrunnerLobby:
-    root: api.schema.NetrunnerLobby  # type: ignore[name-defined]
-    client_info: api.schema.ClientInfo  # type: ignore[name-defined]
+    root: api.NetrunnerLobby
+    client_info: api.ClientInfo
     cmd: click.Command
 
     def switch_cmd(self, command: str) -> None:
         if not command:
             return
+        if self.cmd.name == command:
+            click.echo(f"already in #{command}")
+            return
+
         self.cmd = cli_command.registry[command]
+        click.echo(f"switched to #{self.cmd.name}")
 
 
 @cli_command("lobby")
-@click.option("/nick", help="Change nick name")
+@click.option("/nick", metavar="NAME", help="Change nick name")
 @click.option("/whoami", is_flag=True, help="Check nick name")
-@click.option("/list", "list_games", type=int, help="List games page")
-@click.option("/new", "new_game", help="Create new game", type=click.Choice(("corp", "runner")))
+@click.option(
+    "/list",
+    "list_games",
+    metavar="PAGE",
+    type=int,
+    is_flag=False,
+    flag_value=1,
+    help="List games page",
+)
+@click.option(
+    "/join",
+    "join_game",
+    type=click.Choice(("corp", "runner", "spectate")),
+    help="Join game identified by the /game option",
+)
+@click.option(
+    "/game",
+    "game_id",
+    metavar="GAME_ID",
+    callback=parse_game_id,
+    help="Game id is `SEQ[:POOL]` where the optional POOL defaults to todays pool.",
+)
+@click.option("/new", "new_game", type=click.Choice(("corp", "runner")), help="Create new game")
 @command_argument
 @click.pass_obj
-async def lobby_cmd(lobby, nick, whoami, list_games, new_game, command):
-    lobby.switch_cmd(command)
-
+async def lobby_cmd(lobby, nick, whoami, list_games, join_game, game_id, new_game, command):
     if nick:
         await lobby.client_info.setNick(nick=nick).a_wait()
         click.echo("nick name changed")
@@ -45,17 +84,30 @@ async def lobby_cmd(lobby, nick, whoami, list_games, new_game, command):
         nick = (await lobby.client_info.getNick().a_wait()).nick
         click.echo(f"you are known as {nick!r}")
 
+    if join_game:
+        logging.info(f"join game: {game_id} as {join_game}")
+        player = (await lobby.root.joinGame(role=join_game, gameId=game_id).a_wait()).player
+        click.echo(f"joined game {await player.getInfo().a_wait()}")
+        if not command:
+            command = "game"
+
     if new_game:
         player = (await lobby.root.newGame(role=new_game).a_wait()).player
         click.echo(f"created game for {await player.getInfo().a_wait()}")
         if not command:
-            lobby.switch_cmd("game")
+            command = "game"
 
     if list_games:
-        res = await lobby.root.listGames(page=list_games).a_wait()
-        for game in res.games:
-            click.echo(f" - game: {game}")
-        click.echo(f" = {res.totalCount} games in total")
+        res = await lobby.root.listGames(page=list_games, pageSize=PAGE_SIZE).a_wait()
+        if not res.totalCount:
+            click.echo("there are no games")
+        else:
+            pages = math.ceil(res.totalCount / PAGE_SIZE)
+            for game in res.games:
+                click.echo(f"  - game: {game}")
+            click.echo(f"  // page {list_games}/{pages} || {res.totalCount} games in total")
+
+    lobby.switch_cmd(command)
 
 
 @cli_command("game")

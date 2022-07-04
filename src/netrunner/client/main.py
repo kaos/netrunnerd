@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import atexit
 import inspect
+import logging
 import os
 import readline
 
@@ -20,6 +21,8 @@ from netrunner.util import ainput
 @click.option("--history-file", default="~/.netrunner-history")
 @click.option("--nick")
 def main(address, port, history_file, nick):
+    logging.basicConfig()
+
     if history_file:
         init_history(history_file)
 
@@ -43,6 +46,7 @@ def init_history(history_file: str) -> None:
 
 
 async def client_connect(address, port, init_args):
+    click.echo(f"netrunner client connecting to {address}:{port}...")
     connection = await AsyncClient.connect(address, port, bootstrap_cls=api.schema.NetrunnerLobby)
     root = connection.interface
     myself = await root.myself().a_wait()
@@ -56,13 +60,11 @@ async def client_connect(address, port, init_args):
 
 async def run(lobby):
     while True:
-        args = await ainput(f"{lobby.cmd.name}> ")
+        args = await ainput(f"\n#{lobby.cmd.name} $ ")
         if not args:
             continue
         if args == ["q"]:
             break
-        if args[0] == "help":
-            args[0] = "--help"
 
         await apply_args(lobby, args)
 
@@ -73,7 +75,7 @@ async def apply_args(lobby, args):
         if inspect.isawaitable(res):
             await res
     except Exception as e:
-        click.echo(f"ERROR in {lobby.cmd.name}: {e}")
+        click.echo(f"ERROR in {lobby.cmd.name}: {e}\n\nTry /help for usage.")
 
 
 if __name__ == "__main__":

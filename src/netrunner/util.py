@@ -50,6 +50,7 @@ async def ainput(prompt: str = "", split: bool = True):
 class cli_command:
     registry: Dict[str, click.Command] = {}
     command_names: list[str] = []
+    CONTEXT_SETTINGS = dict(help_option_names=["/help"])
 
     name: str
     kwargs: Mapping
@@ -57,6 +58,7 @@ class cli_command:
     def __init__(self, name: str, **kwargs):
         self.name = name
         self.kwargs = kwargs
+        kwargs.setdefault("context_settings", self.CONTEXT_SETTINGS)
 
     def __call__(self, f) -> click.Command:
         cmd = cast(click.Command, click.command(self.name, **self.kwargs)(f))

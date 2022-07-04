@@ -4,7 +4,7 @@ interface NetrunnerLobby {
   myself @0 () -> (info :ClientInfo);
   listGames @1 (page :UInt32 = 1, pageSize :UInt32 = 25) -> (games :List(Game), totalCount :UInt32);
   newGame @2 (role :Role) -> (player :Player);
-  joinGame @3 (role :Role, gameId :UInt32 = 0) -> (player :Player);
+  joinGame @3 (role :Role, gameId :Game.Id) -> (player :Player);
 }
 
 interface ClientInfo {
@@ -42,6 +42,7 @@ struct Game {
   id @0 :Id;
   corp @1 :Participant;
   runner @2 :Participant;
+  spectators @3 :List(Text);
 
   struct Id {
     seq @0 :UInt64;
@@ -50,8 +51,9 @@ struct Game {
 
   struct Participant {
     nickName @0 :Text;
-    deck @1 :List(Card);
-    cards @2 :List(CardState);
+    identity @1 :Card;
+    deck @2 :List(Card);
+    cards @3 :List(CardState);
   }
 
   struct CardState {
