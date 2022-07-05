@@ -3,8 +3,9 @@ from __future__ import annotations
 import asyncio
 import shlex
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, Literal, Mapping, Sequence, TypeVar, Union, cast, get_args, overload
+from typing import Any, Literal, Sequence, TypeVar, Union, cast, get_args, overload
 
 import click
 
@@ -47,21 +48,11 @@ async def ainput(prompt: str = "", split: bool = True):
         return s if not split else shlex.split(s)
 
 
-class cli_command:
-    registry: Dict[str, click.Command] = {}
-    command_names: list[str] = []
-    CONTEXT_SETTINGS = dict(help_option_names=["/help"])
-
-    name: str
-    kwargs: Mapping
-
-    def __init__(self, name: str, **kwargs):
-        self.name = name
-        self.kwargs = kwargs
-        kwargs.setdefault("context_settings", self.CONTEXT_SETTINGS)
-
-    def __call__(self, f) -> click.Command:
-        cmd = cast(click.Command, click.command(self.name, **self.kwargs)(f))
-        cli_command.registry[self.name] = cmd
-        cli_command.command_names.append(self.name)
-        return cmd
+def parse_game_id(ctx, param, value):
+    if not value:
+        return None
+    try:
+        seq, use_pool, pool = value.partition(":")
+        return dict(seq=int(seq), pool=pool if use_pool else str(datetime.now().date()))
+    except ValueError:
+        raise click.BadParameter(f"Expected game id `SEQ[:POOL]`, but got {value!r}.")
