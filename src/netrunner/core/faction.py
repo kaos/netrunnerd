@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from typing import Union, cast
 
-from netrunner.core.enum import CorpEnum, RunnerEnum
 from netrunner.util import EnumUnion
+
+from netrunner.core.enum import CorpEnum, RunnerEnum
 
 
 class RunnerFaction(RunnerEnum):
@@ -13,6 +14,7 @@ class RunnerFaction(RunnerEnum):
     Adam = "adam"
     Apex = "apex"
     Sunny_Lebeau = "sunny-lebeau"
+    Neutral = "neutral-runner"
 
 
 class CorpFaction(CorpEnum):
@@ -20,6 +22,7 @@ class CorpFaction(CorpEnum):
     Jinteki = "jinteki"
     NBN = "nbn"
     Weyland = "weyland-consortium"
+    Neutral = "neutral-corp"
 
 
 Faction = Union[CorpFaction, RunnerFaction]

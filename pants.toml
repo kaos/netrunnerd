@@ -16,7 +16,7 @@ enabled = true
 repo_id = "EFE51B67-B2F3-4FCF-A44A-10CAE24B63B7"
 
 [python]
-interpreter_constraints = [">=3.8, <3.10"]
+interpreter_constraints = [">=3.9, <3.10"]
 enable_resolves = true
 
 [python.resolves]

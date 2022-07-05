@@ -6,9 +6,9 @@ from dataclasses import dataclass
 from datetime import datetime
 
 import click
+from netrunner.util import cli_command
 
 from netrunner import api
-from netrunner.util import cli_command
 
 logger = logging.getLogger(__name__)
 PAGE_SIZE = 25
@@ -76,7 +76,9 @@ class NetrunnerLobby:
 @click.option("/new", "new_game", type=click.Choice(("corp", "runner")), help="Create new game")
 @command_argument
 @click.pass_obj
-async def lobby_cmd(lobby, nick, whoami, list_decks, list_games, join_game, game_id, new_game, command):
+async def lobby_cmd(
+    lobby, nick, whoami, list_decks, list_games, join_game, game_id, new_game, command
+):
     if nick:
         await lobby.client_info.setNick(nick=nick).a_wait()
         click.echo("nick name changed")
@@ -88,7 +90,9 @@ async def lobby_cmd(lobby, nick, whoami, list_decks, list_games, join_game, game
     if list_decks:
         decks = (await lobby.root.listDecks(decklist=list_decks).a_wait()).decks
         for deck in decks:
-            click.echo(f"  - deck: {deck}")
+            click.echo(f"== {deck.name}")
+            for entry in deck.cards:
+                click.echo(f" - {entry.count}x {entry.card.name}")
 
     if join_game:
         logging.info(f"join game: {game_id} as {join_game}")

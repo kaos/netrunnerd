@@ -9,12 +9,10 @@ from __future__ import annotations
 import json
 import logging
 import pkgutil
-from collections import defaultdict
 from typing import Any, Dict, TypeVar, cast, overload
 
-from netrunner.core.card import Card, CorpCard, RunnerCard, get_card_type
+from netrunner.core.card import Card
 from netrunner.core.error import GameError
-from netrunner.core.faction import get_faction
 
 
 class DBError(GameError):
@@ -72,46 +70,11 @@ def create_card(*, code: str | None = None, name: str | None = None) -> Card:
     ...
 
 
-def create_card(*, code: str | None = None, name: str | None = None, card_type=Card):
+def create_card(*, code=None, name=None, card_type=Card):
     data = get_card_data(code=code, name=name)
-    card_type_enum = get_card_type(data["side_code"], data["type_code"])
-    card = Card.create(card_type_enum, **_card_factory[card_type_enum](data))
+    card = Card.from_netrunner_db_card(data)
     if not isinstance(card, card_type):
         raise DBError(
             f"Expected to create a {card_type} for {code or name!r}, but got {type(card)}"
         )
     return card
-
-
-def _unknown_card(data) -> CardData:
-    raise DBError(f"No card factory for {data['side_code']} {data['type_code']}.")
-
-
-def _base_card_factory(data: CardData) -> CardData:
-    return dict(
-        faction=get_faction(data["side_code"], data["faction_code"]),
-        name=data["stripped_title"],
-        influence=data.get("faction_cost"),
-    )
-
-
-def _identity_card_factory(data: CardData) -> CardData:
-    return dict(
-        minimum_deck_size=data["minimum_deck_size"],
-        influence_limit=data["influence_limit"],
-        **_base_card_factory(data),
-    )
-
-
-def _playable_card_factory(data: CardData) -> CardData:
-    return {}
-
-
-_card_factory = defaultdict(
-    lambda: _unknown_card,
-    {
-        CorpCard.identity: _identity_card_factory,
-        CorpCard.agenda: _playable_card_factory,
-        RunnerCard.identity: _identity_card_factory,
-    },
-)
