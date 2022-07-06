@@ -32,7 +32,7 @@ class command:
 
     @classmethod
     def command(cls, *args, **kwargs) -> Callable[..., Any] | click.Command:
-        names = (cls.__name__, f"/{cls.__name__}")
+        names = (cls.__name__, f"/{cls.__name__.replace('_', '-')}")
         args = cls.click_args + args
         if not any(arg in names for arg in args):
             if args or cls.click_decorator is click.argument:

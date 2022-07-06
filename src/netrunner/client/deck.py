@@ -27,7 +27,7 @@ class list_decks(command):
 
     @staticmethod
     async def get_decks(cmd: command, decklist: str):
-        return (await cmd.lobby.root.listDecks(decklist=list_decks).a_wait()).decks
+        return (await cmd.lobby.root.listDecks(decklist=decklist).a_wait()).decks
 
     async def do_invoke(self, list_decks: str, **kwargs):
         decks = await self.get_decks(self, list_decks)
@@ -65,5 +65,5 @@ class select_deck(command):
     async def do_invoke(self, select_deck: str, **kwargs):
         decklist, _, idx = select_deck.partition(":")
         deck = (await list_decks.get_decks(self, decklist))[idx or 0]
-        await self.lobby.client_info.useDeck(deck)
-        click.echo(f"selected deck {deck.name}")
+        await self.lobby.client_info.useDeck(deck).a_wait()
+        click.echo(f"selected deck: {deck.name}")

@@ -18,5 +18,5 @@ class ClientInfoImpl(api.ClientInfo.Server):
         print(f"Change nick {self.nick} -> {nick}")
         self.nick = nick
 
-    def useDeck(deck: api.Deck) -> None:
+    def useDeck(self, deck: api.Deck, **kwargs) -> None:
         print(f"Use deck: {deck}")
