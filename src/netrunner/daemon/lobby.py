@@ -55,5 +55,4 @@ class NetrunnerLobbyImpl(api.NetrunnerLobby.Server):
 
     def viewCard(self, cardCode: str, **kwargs) -> api.Card:
         card = CapAn.serialize_dataclass(create_card(code=cardCode))
-        print(f"serialized card: {card}")
         return card

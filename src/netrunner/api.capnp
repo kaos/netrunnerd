@@ -138,6 +138,7 @@ struct Card {
     }
     program :group {
       cost @30 :UInt8;
+      keywords @41 :Text;
       memoryCost @31 :UInt8;
       strippedText @32 :Text;
       text @33 :Text;

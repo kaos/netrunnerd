@@ -165,6 +165,7 @@ class HardwareCard(Card):
 class ProgramCard(Card):
     type = RunnerCard.program
     cost: Annotated[int, CapProgram()]
+    keywords: Annotated[str, CapProgram()]
     memory_cost: Annotated[int, CapProgram()]
     stripped_text: Annotated[str, CapProgram()]
     text: Annotated[str, CapProgram()]
