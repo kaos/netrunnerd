@@ -16,10 +16,9 @@ from typing import (
     get_type_hints,
 )
 
-from netrunner.util import EnumUnion
-
 from netrunner.core.enum import CorpEnum, RunnerEnum
 from netrunner.core.faction import Faction, get_faction
+from netrunner.util import EnumUnion
 
 
 class CorpCard(CorpEnum):

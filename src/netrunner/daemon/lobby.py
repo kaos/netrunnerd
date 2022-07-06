@@ -2,15 +2,15 @@ from __future__ import annotations
 
 import logging
 from itertools import islice
+from typing import ClassVar
+
+from underpants.engine import RulesEngine
 
 from netrunner import api
 from netrunner.daemon.client import ClientInfoImpl
+from netrunner.daemon.deck import DeckInfo
 from netrunner.daemon.game import GameID, GameState
 from netrunner.daemon.player import PlayerImpl
-from underpants.engine import RulesEngine
-from typing import ClassVar
-from netrunner.daemon.deck import Deck
-
 
 logger = logging.getLogger(__name__)
 
@@ -48,5 +48,5 @@ class NetrunnerLobbyImpl(api.NetrunnerLobby.Server):
         return PlayerImpl.join_game(role, state, self.client_info)
 
     def listDecks(self, decklist: str, **kwargs) -> list[api.Deck]:
-        res = Deck.list_decks(self.engine, decklist)
-        return [deck.serialize() for deck in Deck.iter_decks(res)]
+        res = DeckInfo.list_decks(self.engine, decklist)
+        return list(map(DeckInfo.serialize, DeckInfo.iter_decks(res)))

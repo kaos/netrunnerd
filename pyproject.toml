@@ -30,5 +30,6 @@ show_traceback = true
 [[tool.mypy.overrides]]
 module = [
     "capnp",
+    "requests",
 ]
 ignore_missing_imports = true

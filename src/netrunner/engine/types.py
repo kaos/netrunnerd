@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any, Mapping
 
 from netrunner.core.game import Game
-from typing import Mapping, Any
 
 
 @dataclass(frozen=True)

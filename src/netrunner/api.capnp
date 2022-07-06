@@ -79,7 +79,8 @@ struct Game {
 struct Deck {
   id @0 :Text;
   name @1 :Text;
-  cards @2 :List(DeckCard);
+  identity @2 :Card;
+  cards @3 :List(DeckCard);
 
   struct DeckCard {
     card @0 :Card;

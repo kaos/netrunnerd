@@ -9,6 +9,7 @@ from netrunner import api
 from netrunner.core.game import Game
 from netrunner.core.player import Player
 from netrunner.daemon.card import CardInfo
+from netrunner.daemon.deck import DeckInfo
 
 logger = logging.getLogger(__name__)
 
@@ -98,8 +99,7 @@ class Participant:
         }
         deck = self.player.deck
         if deck:
-            participant["identity"] = CardInfo.serialize(card=deck.identity)
-            participant["deck"] = [CardInfo.serialize(card=card) for card in deck.cards]
+            participant["deck"] = DeckInfo.serialize(deck)
         return participant
 
 

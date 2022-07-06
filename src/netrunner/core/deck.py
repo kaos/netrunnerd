@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+import itertools
 import random
 from dataclasses import dataclass
 from typing import Iterator, Sequence, TypeVar, overload
-import itertools
+
 from netrunner.core.card import Card, IdentityCard
 from netrunner.core.error import GameError
 
@@ -35,7 +36,7 @@ class Deck:
         return cls(
             identity=next(card for _, card in cards if isinstance(card, IdentityCard)),
             cards=tuple((n, card) for n, card in cards if not isinstance(card, IdentityCard)),
-            **kwargs
+            **kwargs,
         )
 
     @property

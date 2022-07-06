@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-from pants.engine.rules import collect_rules, rule, QueryRule, Get
+import requests
+from pants.engine.rules import QueryRule, collect_rules, rule
 
 from netrunner.core.error import GameError
-from netrunner.engine.types import BeginGame, GameState
-from netrunner.engine.types import Decklist, DecklistRequest
-import requests
+from netrunner.engine.types import BeginGame, Decklist, DecklistRequest, GameState
 
 
 @rule

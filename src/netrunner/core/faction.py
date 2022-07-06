@@ -2,9 +2,8 @@ from __future__ import annotations
 
 from typing import Union, cast
 
-from netrunner.util import EnumUnion
-
 from netrunner.core.enum import CorpEnum, RunnerEnum
+from netrunner.util import EnumUnion
 
 
 class RunnerFaction(RunnerEnum):
