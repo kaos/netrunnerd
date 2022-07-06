@@ -14,7 +14,7 @@ interface ClientInfo {
   getNick @0 () -> (nick :Text);
   setNick @1 (nick :Text, password :Text = "");
   registerNick @2 (password :Text);
-  selectDeck @3 (deck :Deck);
+  useDeck @3 (deck :Deck);
 }
 
 interface Player {

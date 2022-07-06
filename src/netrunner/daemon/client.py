@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 from netrunner import api
+from netrunner.core.deck import Deck
 
 
 class ClientInfoImpl(api.ClientInfo.Server):
     nick: str
+    deck: Deck | None
 
     def __init__(self, nick: str):
         self.nick = nick
@@ -15,3 +17,6 @@ class ClientInfoImpl(api.ClientInfo.Server):
     def setNick(self, nick: str, **kwargs) -> None:
         print(f"Change nick {self.nick} -> {nick}")
         self.nick = nick
+
+    def useDeck(deck: api.Deck) -> None:
+        print(f"Use deck: {deck}")

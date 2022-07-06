@@ -25,8 +25,12 @@ class list_decks(command):
     click_args = ("/decks",)
     click_kwargs = dict(metavar="DECKLIST", help="List decks in DECKLIST")
 
+    @staticmethod
+    async def get_decks(cmd: command, decklist: str):
+        return (await cmd.lobby.root.listDecks(decklist=list_decks).a_wait()).decks
+
     async def do_invoke(self, list_decks: str, **kwargs):
-        decks = (await self.lobby.root.listDecks(decklist=list_decks).a_wait()).decks
+        decks = await self.get_decks(self, list_decks)
 
         for deck in decks:
             click.echo(f"== {deck.name}")
@@ -51,3 +55,15 @@ class list_decks(command):
                 f" : {total_influence} influence spent (max {ident.influenceLimit})"
                 "\n"
             )
+
+
+class select_deck(command):
+    click_kwargs = dict(
+        metavar="DECKLIST[:IDX]", help="Select deck from DECKLIST, IDX defaults to 0."
+    )
+
+    async def do_invoke(self, select_deck: str, **kwargs):
+        decklist, _, idx = select_deck.partition(":")
+        deck = (await list_decks.get_decks(self, decklist))[idx or 0]
+        await self.lobby.client_info.useDeck(deck)
+        click.echo(f"selected deck {deck.name}")
