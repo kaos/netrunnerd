@@ -15,7 +15,7 @@ class CapAn:
     skip: bool = False
 
     def serialize_value(self, field_name: str, value: Any) -> tuple[str, Any]:
-        if self.skip:
+        if self.skip or value is None:
             return "", None
         if self.field_name:
             field_name = self.field_name

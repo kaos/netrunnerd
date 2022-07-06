@@ -1,11 +1,20 @@
 from __future__ import annotations
 
-from netrunner.db.cardpool import create_card
+from itertools import count
+from pprint import pformat
+from uuid import uuid4, uuid5
 
+import pytest
+
+from netrunner import api
 from netrunner.capnp.annotation import CapAn
+from netrunner.core.card import EventCard, ResourceCard, RunnerIdentityCard
+from netrunner.core.deck import Deck
+from netrunner.core.faction import RunnerFaction
+from netrunner.db.cardpool import _get_cardpool, create_card
 
 
-def test_create_card() -> None:
+def test_serialize_card() -> None:
     card = create_card(code="01093")
     data = CapAn.serialize_dataclass(card)
     assert 36 == len(data["id"])
@@ -14,7 +23,6 @@ def test_create_card() -> None:
         code="01093",
         influence=0,
         name="Weyland Consortium: Building a Better World",
-        title="Weyland Consortium: Building a Better World",
         unique=False,
         deckLimit=1,
         faction=dict(
@@ -26,3 +34,93 @@ def test_create_card() -> None:
             minimumDeckSize=45,
         ),
     )
+
+
+def test_serialize_deck(monkeypatch) -> None:
+    ns = uuid4()
+    counter = count()
+    monkeypatch.setattr("netrunner.core.card.uuid4", lambda: uuid5(ns, str(next(counter))))
+
+    cards = {
+        "10043": 2,
+        "22015": 1,
+        "31037": 3,
+    }
+    deck = Deck.create(
+        id=70434,
+        name="How To Build A Runner Deck - Akiko Nisei",
+        cards=[(count, create_card(code=code)) for code, count in cards.items()],
+    )
+    data = CapAn.serialize_dataclass(deck)
+    assert data == dict(
+        id=70434,
+        name="How To Build A Runner Deck - Akiko Nisei",
+        identity=RunnerIdentityCard(
+            id=str(uuid5(ns, "1")),
+            code="22015",
+            faction=RunnerFaction.Shaper,
+            name="Akiko Nisei: Head Case",
+            influence=0,
+            unique=False,
+            deck_limit=1,
+            minimum_deck_size=45,
+            influence_limit=12,
+        ),
+        cards=(
+            (
+                2,
+                ResourceCard(
+                    id=str(uuid5(ns, "0")),
+                    code="10043",
+                    faction=RunnerFaction.Criminal,
+                    name="Political Operative",
+                    influence=1,
+                    unique=False,
+                    deck_limit=3,
+                    cost=1,
+                    stripped_text=(
+                        "Install only if you made a successful run on HQ this turn. "
+                        "trash, X credits: Trash 1 rezzed card with trash cost equal to X."
+                    ),
+                    text=(
+                        "Install only if you made a successful run on HQ this turn.\n"
+                        "<strong>[trash]</strong>, <strong>X[credit]:</strong> "
+                        "Trash 1 rezzed card with trash cost equal to X."
+                    ),
+                ),
+            ),
+            (
+                3,
+                EventCard(
+                    id=str(uuid5(ns, "2")),
+                    code="31037",
+                    faction=RunnerFaction.Neutral,
+                    name="Dirty Laundry",
+                    influence=0,
+                    unique=False,
+                    deck_limit=3,
+                    cost=2,
+                    stripped_text=(
+                        "Run any server. When that run ends, if it was successful, gain 5 credits."
+                    ),
+                    text=(
+                        "Run any server. When that run ends, if it was successful, gain 5[credit]."
+                    ),
+                ),
+            ),
+        ),
+    )
+
+
+@pytest.mark.parametrize("card_code", [data["code"] for data in _get_cardpool()["data"]])
+def test_serialize_all_cards_to_capnp(card_code: str) -> None:
+    card = create_card(code=card_code)
+    print(f"CARD:\n{card}\n")
+
+    serialized = CapAn.serialize_dataclass(card)
+    print(f"Serialized:\n{pformat(serialized)}\n")
+
+    capnp_card = api.Card.new_message(**serialized)
+    print(f"CAPNP Card:\n{capnp_card}\n")
+
+    assert capnp_card.name == card.name

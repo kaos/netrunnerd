@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, fields
+from functools import partial
 from typing import (
     Annotated,
     Any,
@@ -17,11 +18,10 @@ from typing import (
 )
 from uuid import uuid4
 
-from netrunner.util import EnumUnion
-
 from netrunner.capnp.annotation import CapAn
 from netrunner.core.enum import CorpEnum, RunnerEnum
 from netrunner.core.faction import Faction, get_faction, serialize_faction
+from netrunner.util import EnumUnion
 
 
 class CorpCard(CorpEnum):
@@ -126,10 +126,22 @@ class Card:
                 yield from sub.__subtypes()
 
 
+CapAgenda = partial(CapAn, group="agenda")
+CapAsset = partial(CapAn, group="asset")
+CapEvent = partial(CapAn, group="event")
+CapHardware = partial(CapAn, group="hardware")
+CapIce = partial(CapAn, group="ice")
+CapIdentity = partial(CapAn, group="identity")
+CapOperation = partial(CapAn, group="operation")
+CapProgram = partial(CapAn, group="program")
+CapResource = partial(CapAn, group="resource")
+CapUpgrade = partial(CapAn, group="upgrade")
+
+
 @dataclass(frozen=True)
 class IdentityCard(Card):
-    minimum_deck_size: Annotated[int, CapAn(group="identity")]
-    influence_limit: Annotated[int, CapAn(group="identity")]
+    minimum_deck_size: Annotated[int, CapIdentity()]
+    influence_limit: Annotated[int, CapIdentity()]
 
 
 @dataclass(frozen=True)
@@ -145,74 +157,74 @@ class RunnerIdentityCard(IdentityCard):
 @dataclass(frozen=True)
 class AgendaCard(Card):
     type = CorpCard.agenda
-    advancement_cost: int
-    agenda_points: int
+    advancement_cost: Annotated[int, CapAgenda()]
+    agenda_points: Annotated[int, CapAgenda()]
 
 
 @dataclass(frozen=True)
 class AssetCard(Card):
     type = CorpCard.asset
-    cost: int
-    stripped_text: str
-    text: str
-    trash_cost: int
+    cost: Annotated[int, CapAsset()]
+    stripped_text: Annotated[str, CapAsset()]
+    text: Annotated[str, CapAsset()]
+    trash_cost: Annotated[int, CapAsset()]
 
 
 @dataclass(frozen=True)
 class IceCard(Card):
     type = CorpCard.ice
-    cost: int
-    keywords: str
-    strength: int
-    stripped_text: str
-    text: str
+    cost: Annotated[int, CapIce()]
+    keywords: Annotated[str, CapIce()]
+    strength: Annotated[int, CapIce()]
+    stripped_text: Annotated[str, CapIce()]
+    text: Annotated[str, CapIce()]
 
 
 @dataclass(frozen=True)
 class OperationCard(Card):
     type = CorpCard.operation
-    cost: int
-    stripped_text: str
-    text: str
+    cost: Annotated[int, CapOperation()]
+    stripped_text: Annotated[str, CapOperation()]
+    text: Annotated[str, CapOperation()]
 
 
 @dataclass(frozen=True)
 class UpgradeCard(Card):
     type = CorpCard.upgrade
-    cost: int
-    stripped_text: str
-    text: str
-    trash_cost: int
+    cost: Annotated[int, CapUpgrade()]
+    stripped_text: Annotated[str, CapUpgrade()]
+    text: Annotated[str, CapUpgrade()]
+    trash_cost: Annotated[int, CapUpgrade()]
 
 
 @dataclass(frozen=True)
 class EventCard(Card):
     type = RunnerCard.event
-    cost: int
-    stripped_text: str
-    text: str
+    cost: Annotated[int, CapEvent()]
+    stripped_text: Annotated[str, CapEvent()]
+    text: Annotated[str, CapEvent()]
 
 
 @dataclass(frozen=True)
 class HardwareCard(Card):
     type = RunnerCard.hardware
-    cost: int
-    stripped_text: str
-    text: str
+    cost: Annotated[int, CapHardware()]
+    stripped_text: Annotated[str, CapHardware()]
+    text: Annotated[str, CapHardware()]
 
 
 @dataclass(frozen=True)
 class ProgramCard(Card):
     type = RunnerCard.program
-    cost: int
-    memory_cost: int
-    stripped_text: str
-    text: str
+    cost: Annotated[int, CapProgram()]
+    memory_cost: Annotated[int, CapProgram()]
+    stripped_text: Annotated[str, CapProgram()]
+    text: Annotated[str, CapProgram()]
 
 
 @dataclass(frozen=True)
 class ResourceCard(Card):
     type = RunnerCard.resource
-    cost: int
-    stripped_text: str
-    text: str
+    cost: Annotated[int, CapResource()]
+    stripped_text: Annotated[str, CapResource()]
+    text: Annotated[str, CapResource()]

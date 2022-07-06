@@ -8,7 +8,6 @@ import os
 import readline
 
 import click
-from netrunner.util import ainput
 
 from netrunner import api
 from netrunner.capnp.client import AsyncClient
@@ -18,6 +17,7 @@ from netrunner.client.game import join_game, list_games, new_game
 from netrunner.client.info import nick, view_card, whoami
 from netrunner.client.lobby import NetrunnerLobby
 from netrunner.client.mode import mode
+from netrunner.util import ainput
 
 
 @mode("lobby")

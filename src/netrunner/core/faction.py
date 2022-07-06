@@ -2,9 +2,8 @@ from __future__ import annotations
 
 from typing import Union, cast
 
-from netrunner.util import EnumUnion
-
 from netrunner.core.enum import CorpEnum, RunnerEnum
+from netrunner.util import EnumUnion
 
 
 class RunnerFaction(RunnerEnum):
@@ -18,7 +17,7 @@ class RunnerFaction(RunnerEnum):
 
 
 class CorpFaction(CorpEnum):
-    Haas_Bioroid = "haas-bioriod"
+    Haas_Bioroid = "haas-bioroid"
     Jinteki = "jinteki"
     NBN = "nbn"
     Weyland = "weyland-consortium"
