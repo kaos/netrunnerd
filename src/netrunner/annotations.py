@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass, fields, is_dataclass
 from functools import reduce
-from typing import Annotated, Any, Callable, get_args, get_origin, get_type_hints, TypeVar
-
+from itertools import cycle
+from typing import Annotated, Any, Callable, TypeVar, get_args, get_origin, get_type_hints
 
 CapnpMessage = Any
-T = TypeVar("T", bound=object)
+T = TypeVar("T")
 
 
 @dataclass(frozen=True)
@@ -14,7 +14,7 @@ class CapAn:
     """Annotation type for serializing a dataclass field to capnp."""
 
     field_name: str | None = None
-    convert: Callable | None = None
+    serializer: Callable | None = None
     deserializer: Callable | None = None
     group: str | None = None
     skip: bool = False
@@ -24,14 +24,16 @@ class CapAn:
             return "", None
         if self.field_name:
             field_name = self.field_name
-        if self.convert:
-            value = self.convert(value)
-        value = self.default_convert(value)
+        if self.serializer:
+            value = self.serializer(value)
+        value = self.default_serializer(value)
         if self.group:
             return self.group, {field_name: value}
         return field_name, value
 
-    def deserialize_value(self, field_name: str, field_type: Any, src: CapnpMessage) -> tuple[str, Any]:
+    def deserialize_value(
+        self, field_name: str, field_type: Any, src: CapnpMessage
+    ) -> tuple[str, Any]:
         if self.skip:
             return "", None
         if self.field_name:
@@ -45,20 +47,25 @@ class CapAn:
         return field_name, value
 
     @classmethod
-    def default_convert(cls, value: Any) -> Any:
+    def default_serializer(cls, value: Any) -> Any:
         if is_dataclass(value):
             return cls.serialize_dataclass(value)
         if isinstance(value, (list, tuple)):
-            return type(value)(map(cls.default_convert, value))
+            return type(value)(map(cls.default_serializer, value))
         return value
 
     @classmethod
     def default_deserializer(cls, field_type: Any, value: Any) -> Any:
         if is_dataclass(field_type):
-            return cls.deserialize_dataclass(field_type, value)
-        if get_origin(field_type) in (list, tuple):
+            _capan_type = getattr(field_type, "_capan_type", None)
+            if isinstance(_capan_type, cls) and _capan_type.deserializer:
+                return _capan_type.deserializer(value)
+            else:
+                return cls.deserialize_dataclass(field_type, value)
+        aliased = get_origin(field_type)
+        if aliased in (list, tuple):
             sub_type_it = cycle(arg for arg in get_args(field_type) if arg is not Ellipsis)
-            return get_origin(field_type)(map(cls.default_deserializer(sub_type_it(), v), value))
+            return aliased(cls.default_deserializer(next(sub_type_it), v) for v in value)
         return value
 
     @staticmethod
@@ -73,7 +80,7 @@ class CapAn:
             for arg in get_args(field_type):
                 if isinstance(arg, cls):
                     return arg.serialize_value(field_name, value)
-        return field_name, cls.default_convert(value)
+        return field_name, cls.default_serializer(value)
 
     @classmethod
     def serialize_dataclass(cls, data: object) -> dict[str, Any]:
@@ -95,10 +102,13 @@ class CapAn:
             else:
                 values[field_name] = field_value
         return values
-    
+
     @classmethod
-    def deserialize_field(cls, field_name: str, field_type: Any, src: CapnpMessage) -> tuple[str, Any]:
+    def deserialize_field(
+        cls, field_name: str, field_type: Any, src: CapnpMessage
+    ) -> tuple[str, Any]:
         field_name = cls.capnp_field_name(field_name)
+        print(f" deserialize: {field_name} {field_type}")
         if get_origin(field_type) is Annotated:
             args = iter(get_args(field_type))
             field_type = next(args)
@@ -113,9 +123,12 @@ class CapAn:
         field_types = get_type_hints(dst, include_extras=True)
         for field in fields(dst):
             valid, value = cls.deserialize_field(field.name, field_types[field.name], src)
+
+            print(f" + deserialized {valid} :: {value}")
+
             if valid:
                 values[field.name] = value
-        return dst(**values)
+        return dst(**values)  # type: ignore[call-arg]
 
 
 class NDB:

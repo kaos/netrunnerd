@@ -4,10 +4,11 @@ from dataclasses import dataclass
 from functools import partial
 from typing import Annotated, Any, ClassVar, Iterator, Literal, Type, Union, cast
 from uuid import uuid4
+
 from netrunner import api
 from netrunner.annotations import NDB, CapAn
 from netrunner.core.enum import CorpEnum, RunnerEnum
-from netrunner.core.faction import Faction, get_faction, serialize_faction, deserialize_faction
+from netrunner.core.faction import Faction, deserialize_faction, get_faction, serialize_faction
 from netrunner.util import EnumUnion
 
 
@@ -38,6 +39,7 @@ def get_card_type(side: str, value: str) -> CardType:
 @dataclass(frozen=True)
 class Card:
     _ndb_type: ClassVar[NDB] = NDB("side_code", "type_code", convert=get_card_type)
+    _capan_type: ClassVar[CapAn] = CapAn(deserializer=lambda src: Card.from_capnp(src))
     type: ClassVar[CardType]
 
     id: Annotated[str, NDB("code", convert=lambda _: str(uuid4()))]
@@ -45,7 +47,7 @@ class Card:
     faction: Annotated[
         Faction,
         NDB("side_code", "faction_code", convert=get_faction),
-        CapAn(convert=serialize_faction, deserializer=deserialize_faction),
+        CapAn(serializer=serialize_faction, deserializer=deserialize_faction),
     ]
     name: Annotated[str, NDB("stripped_title")]
     influence: Annotated[Literal[0, 1, 2, 3, 4, 5], NDB("faction_cost")]

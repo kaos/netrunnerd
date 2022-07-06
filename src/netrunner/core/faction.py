@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Union, cast
+
 from netrunner import api
 from netrunner.core.enum import CorpEnum, RunnerEnum
 from netrunner.util import EnumUnion

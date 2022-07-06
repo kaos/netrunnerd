@@ -8,8 +8,8 @@ import pytest
 
 from netrunner import api
 from netrunner.annotations import CapAn
+from netrunner.core.card import Card
 from netrunner.core.deck import Deck
-from netrunner.core.card import get_card_type, Card
 from netrunner.db.cardpool import _get_cardpool, create_card
 
 
@@ -144,9 +144,13 @@ def test_serialize_deck(monkeypatch) -> None:
         ),
     )
 
-    print(f"Serialized deck:\n{pformat(data)}\n")
+    print(f"Serialized Deck:\n{pformat(data)}\n")
     capnp_deck = api.Deck.new_message(**data)
     assert capnp_deck.id == "be5f934b-2850-4fea-9ba3-f04848aa74dc"
+
+    print(f"CAPNP Deck:\n{capnp_deck}\n")
+    deserialized = CapAn.deserialize_dataclass(Deck, capnp_deck)
+    assert deserialized == deck
 
 
 @pytest.mark.parametrize("card_code", [data["code"] for data in _get_cardpool()["data"]])
@@ -155,7 +159,7 @@ def test_serialize_all_cards_to_capnp(card_code: str) -> None:
     print(f"CARD:\n{card}\n")
 
     serialized = CapAn.serialize_dataclass(card)
-    print(f"Serialized:\n{pformat(serialized)}\n")
+    print(f"Serialized Card:\n{pformat(serialized)}\n")
 
     capnp_card = api.Card.new_message(**serialized)
     print(f"CAPNP Card:\n{capnp_card}\n")
