@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from typing import Union, cast
-
+from netrunner import api
 from netrunner.core.enum import CorpEnum, RunnerEnum
 from netrunner.util import EnumUnion
 
@@ -36,3 +36,7 @@ def serialize_faction(faction: Faction) -> dict:
         name=faction.value,
         side=faction._get_side(),
     )
+
+
+def deserialize_faction(faction: api.Card.Faction) -> Faction:
+    return get_faction(faction.side, faction.name)

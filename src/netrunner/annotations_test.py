@@ -9,7 +9,34 @@ import pytest
 from netrunner import api
 from netrunner.annotations import CapAn
 from netrunner.core.deck import Deck
+from netrunner.core.card import get_card_type, Card
 from netrunner.db.cardpool import _get_cardpool, create_card
+
+
+def test_deserialize_card(monkeypatch) -> None:
+    ns = uuid4()
+    counter = count()
+    monkeypatch.setattr("netrunner.core.card.uuid4", lambda: uuid5(ns, str(next(counter))))
+
+    data = api.Card.new_message(
+        id=str(uuid5(ns, "0")),
+        code="01093",
+        influence=0,
+        name="Weyland Consortium: Building a Better World",
+        unique=False,
+        deckLimit=1,
+        faction=dict(
+            name="weyland-consortium",
+            side="corp",
+        ),
+        identity=dict(
+            influenceLimit=15,
+            minimumDeckSize=45,
+        ),
+    )
+    print(data)
+    card = Card.from_capnp(data)
+    assert card == create_card(code="01093")
 
 
 def test_serialize_card() -> None:
