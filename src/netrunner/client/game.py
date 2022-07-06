@@ -56,7 +56,10 @@ class join_game(command):
             "game_id",
             metavar="GAME_ID",
             callback=parse_game_id,
-            help="Game id is `SEQ[:POOL]` where the optional POOL defaults to todays pool.",
+            help=(
+                "Game id to join. GAME_ID is `SEQ[:POOL]` where "
+                "the optional POOL defaults to todays pool."
+            ),
         ),
     )
 

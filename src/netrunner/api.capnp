@@ -13,8 +13,9 @@ interface NetrunnerLobby {
 interface ClientInfo {
   getNick @0 () -> (nick :Text);
   setNick @1 (nick :Text, password :Text = "");
-  registerNick @2 (password :Text);
-  useDeck @3 (deck :Deck);
+  registerNick @2 (nick :Text, password :Text);
+  getDeck @3 () -> (deck :Deck);
+  setDeck @4 (deck :Deck);
 }
 
 interface Player {

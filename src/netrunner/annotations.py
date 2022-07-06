@@ -108,7 +108,6 @@ class CapAn:
         cls, field_name: str, field_type: Any, src: CapnpMessage
     ) -> tuple[str, Any]:
         field_name = cls.capnp_field_name(field_name)
-        print(f" deserialize: {field_name} {field_type}")
         if get_origin(field_type) is Annotated:
             args = iter(get_args(field_type))
             field_type = next(args)
@@ -123,9 +122,6 @@ class CapAn:
         field_types = get_type_hints(dst, include_extras=True)
         for field in fields(dst):
             valid, value = cls.deserialize_field(field.name, field_types[field.name], src)
-
-            print(f" + deserialized {valid} :: {value}")
-
             if valid:
                 values[field.name] = value
         return dst(**values)  # type: ignore[call-arg]

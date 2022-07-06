@@ -12,7 +12,7 @@ import click
 from netrunner import api
 from netrunner.capnp.client import AsyncClient
 from netrunner.client.cmd import command, select_mode
-from netrunner.client.deck import list_decks, select_deck
+from netrunner.client.deck import list_decks, select_deck, show_deck
 from netrunner.client.game import join_game, list_games, new_game
 from netrunner.client.info import nick, view_card, whoami
 from netrunner.client.lobby import NetrunnerLobby
@@ -25,6 +25,7 @@ from netrunner.util import ainput
 @whoami.command()
 @list_decks.command()
 @select_deck.command()
+@show_deck.command()
 @list_games.command()
 @join_game.command()
 @new_game.command()
