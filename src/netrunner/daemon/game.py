@@ -6,10 +6,9 @@ from datetime import datetime
 from typing import ClassVar
 
 from netrunner import api
+from netrunner.annotations import CapAn
 from netrunner.core.game import Game
 from netrunner.core.player import Player
-from netrunner.daemon.card import CardInfo
-from netrunner.daemon.deck import DeckInfo
 
 logger = logging.getLogger(__name__)
 
@@ -95,11 +94,11 @@ class Participant:
 
         participant = {
             "nickName": attendee.nick,
-            "cards": [CardInfo.serialize(state=card) for card in self.player.cards],
+            "cards": [CapAn.serialize_dataclass(card) for card in self.player.cards],
         }
         deck = self.player.deck
         if deck:
-            participant["deck"] = DeckInfo.serialize(deck)
+            participant["deck"] = CapAn.serialize_dataclass(deck)
         return participant
 
 

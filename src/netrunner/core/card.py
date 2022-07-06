@@ -1,24 +1,11 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, fields
+from dataclasses import dataclass
 from functools import partial
-from typing import (
-    Annotated,
-    Any,
-    Callable,
-    ClassVar,
-    Iterator,
-    Literal,
-    Type,
-    Union,
-    cast,
-    get_args,
-    get_origin,
-    get_type_hints,
-)
+from typing import Annotated, Any, ClassVar, Iterator, Literal, Type, Union, cast
 from uuid import uuid4
 
-from netrunner.capnp.annotation import CapAn
+from netrunner.annotations import NDB, CapAn
 from netrunner.core.enum import CorpEnum, RunnerEnum
 from netrunner.core.faction import Faction, get_faction, serialize_faction
 from netrunner.util import EnumUnion
@@ -46,45 +33,6 @@ CardType = Union[CorpCard, RunnerCard]
 
 def get_card_type(side: str, value: str) -> CardType:
     return cast(CardType, EnumUnion.find_value(CardType, value, side=side))
-
-
-class NDB:
-    """Map netrunner.core.card field to a NetrunnerDB card field."""
-
-    field_names: tuple[str, ...]
-    convert: Callable | None
-
-    def __init__(self, *field_name: str, convert: Callable | None = None, skip: bool = False):
-        if len(field_name) > 1:
-            assert convert
-
-        self.field_names = field_name
-        self.convert = convert
-
-    def field_value(self, field_name: str, data: dict[str, Any]) -> Any:
-        values = (data.get(field) for field in self.field_names or (field_name,))
-        if self.convert:
-            return self.convert(*values)
-        else:
-            return next(values)
-
-    @classmethod
-    def field_values_for(cls, card_type: type[Card], data: dict[str, Any]) -> dict[str, Any]:
-        field_values = {}
-        field_types = get_type_hints(card_type, include_extras=True)
-        for field in fields(card_type):
-            field_values[field.name] = cls.get_value_for_type(
-                field_types[field.name], field.name, data
-            )
-        return field_values
-
-    @classmethod
-    def get_value_for_type(cls, field_type: Any, field_name: str, data: dict[str, Any]) -> Any:
-        if get_origin(field_type) is Annotated:
-            for arg in get_args(field_type):
-                if isinstance(arg, cls):
-                    return arg.field_value(field_name, data)
-        return data.get(field_name)
 
 
 @dataclass(frozen=True)

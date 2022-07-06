@@ -3,8 +3,9 @@ from __future__ import annotations
 import itertools
 import random
 from dataclasses import dataclass
-from typing import Iterator, Sequence, TypeVar, overload
+from typing import Annotated, Iterator, Sequence, TypeVar, overload
 
+from netrunner.annotations import NDB
 from netrunner.core.card import Card, IdentityCard
 from netrunner.core.error import GameError
 
@@ -25,17 +26,28 @@ class DeckCardLimitError(DeckError):
 
 
 @dataclass(frozen=True)
+class DeckCard:
+    count: int
+    card: Card
+
+    def get_cards(self) -> tuple[Card, ...]:
+        return self.count * (self.card,)
+
+
+@dataclass(frozen=True)
 class Deck:
-    id: str
+    id: Annotated[str, NDB("uuid")]
     name: str
     identity: IdentityCard
-    cards: tuple[tuple[int, Card], ...]
+    cards: tuple[DeckCard, ...]
 
     @classmethod
     def create(cls, cards: Sequence[tuple[int, Card]], **kwargs) -> Deck:
         return cls(
             identity=next(card for _, card in cards if isinstance(card, IdentityCard)),
-            cards=tuple((n, card) for n, card in cards if not isinstance(card, IdentityCard)),
+            cards=tuple(
+                DeckCard(n, card) for n, card in cards if not isinstance(card, IdentityCard)
+            ),
             **kwargs,
         )
 
@@ -60,7 +72,7 @@ class Deck:
 
     def shuffle(self, cards=None) -> Iterator:
         if cards is None:
-            cards = itertools.chain.from_iterable(n * [card] for n, card in self.cards)
+            cards = itertools.chain.from_iterable(map(DeckCard.get_cards, self.cards))
         items = list(cards)
         random.shuffle(items)
         yield from items

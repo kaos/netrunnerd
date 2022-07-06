@@ -7,7 +7,7 @@ from typing import ClassVar
 from underpants.engine import RulesEngine
 
 from netrunner import api
-from netrunner.capnp.annotation import CapAn
+from netrunner.annotations import CapAn
 from netrunner.daemon.client import ClientInfoImpl
 from netrunner.daemon.deck import DeckInfo
 from netrunner.daemon.game import GameID, GameState

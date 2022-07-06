@@ -7,10 +7,8 @@ from uuid import uuid4, uuid5
 import pytest
 
 from netrunner import api
-from netrunner.capnp.annotation import CapAn
-from netrunner.core.card import EventCard, ResourceCard, RunnerIdentityCard
+from netrunner.annotations import CapAn
 from netrunner.core.deck import Deck
-from netrunner.core.faction import RunnerFaction
 from netrunner.db.cardpool import _get_cardpool, create_card
 
 
@@ -47,69 +45,81 @@ def test_serialize_deck(monkeypatch) -> None:
         "31037": 3,
     }
     deck = Deck.create(
-        id=70434,
+        id="be5f934b-2850-4fea-9ba3-f04848aa74dc",
         name="How To Build A Runner Deck - Akiko Nisei",
         cards=[(count, create_card(code=code)) for code, count in cards.items()],
     )
     data = CapAn.serialize_dataclass(deck)
     assert data == dict(
-        id=70434,
+        id="be5f934b-2850-4fea-9ba3-f04848aa74dc",
         name="How To Build A Runner Deck - Akiko Nisei",
-        identity=RunnerIdentityCard(
+        identity=dict(
             id=str(uuid5(ns, "1")),
             code="22015",
-            faction=RunnerFaction.Shaper,
+            faction=dict(side="runner", name="shaper"),
             name="Akiko Nisei: Head Case",
             influence=0,
             unique=False,
-            deck_limit=1,
-            minimum_deck_size=45,
-            influence_limit=12,
+            deckLimit=1,
+            identity=dict(
+                minimumDeckSize=45,
+                influenceLimit=12,
+            ),
         ),
         cards=(
-            (
-                2,
-                ResourceCard(
+            dict(
+                count=2,
+                card=dict(
                     id=str(uuid5(ns, "0")),
                     code="10043",
-                    faction=RunnerFaction.Criminal,
+                    faction=dict(side="runner", name="criminal"),
                     name="Political Operative",
                     influence=1,
                     unique=False,
-                    deck_limit=3,
-                    cost=1,
-                    stripped_text=(
-                        "Install only if you made a successful run on HQ this turn. "
-                        "trash, X credits: Trash 1 rezzed card with trash cost equal to X."
-                    ),
-                    text=(
-                        "Install only if you made a successful run on HQ this turn.\n"
-                        "<strong>[trash]</strong>, <strong>X[credit]:</strong> "
-                        "Trash 1 rezzed card with trash cost equal to X."
+                    deckLimit=3,
+                    resource=dict(
+                        cost=1,
+                        strippedText=(
+                            "Install only if you made a successful run on HQ this turn. "
+                            "trash, X credits: Trash 1 rezzed card with trash cost equal to X."
+                        ),
+                        text=(
+                            "Install only if you made a successful run on HQ this turn.\n"
+                            "<strong>[trash]</strong>, <strong>X[credit]:</strong> "
+                            "Trash 1 rezzed card with trash cost equal to X."
+                        ),
                     ),
                 ),
             ),
-            (
-                3,
-                EventCard(
+            dict(
+                count=3,
+                card=dict(
                     id=str(uuid5(ns, "2")),
                     code="31037",
-                    faction=RunnerFaction.Neutral,
+                    faction=dict(side="runner", name="neutral-runner"),
                     name="Dirty Laundry",
                     influence=0,
                     unique=False,
-                    deck_limit=3,
-                    cost=2,
-                    stripped_text=(
-                        "Run any server. When that run ends, if it was successful, gain 5 credits."
-                    ),
-                    text=(
-                        "Run any server. When that run ends, if it was successful, gain 5[credit]."
+                    deckLimit=3,
+                    event=dict(
+                        cost=2,
+                        strippedText=(
+                            "Run any server. When that run ends, "
+                            "if it was successful, gain 5 credits."
+                        ),
+                        text=(
+                            "Run any server. When that run ends, "
+                            "if it was successful, gain 5[credit]."
+                        ),
                     ),
                 ),
             ),
         ),
     )
+
+    print(f"Serialized deck:\n{pformat(data)}\n")
+    capnp_deck = api.Deck.new_message(**data)
+    assert capnp_deck.id == "be5f934b-2850-4fea-9ba3-f04848aa74dc"
 
 
 @pytest.mark.parametrize("card_code", [data["code"] for data in _get_cardpool()["data"]])
