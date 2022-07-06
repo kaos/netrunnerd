@@ -7,6 +7,7 @@ interface NetrunnerLobby {
   joinGame @3 (role :Role, gameId :Game.Id) -> (player :Player);
 
   listDecks @4 (decklist :Text) -> (decks :List(Deck));
+  viewCard @5 (cardCode :Text) -> (card :Card);
 }
 
 interface ClientInfo {
@@ -89,30 +90,69 @@ struct Deck {
 }
 
 struct Card {
-  id @0 :UInt32;
-  name @1 :Text;
-  faction @2 :Faction;
-  influence :union {
-    none @3 :Void;
-    value @4 :UInt8;
-  }
+  id @0 :Text;
+  code @1 :Text;
+  name @2 :Text;
+  faction @3 :Faction;
+  influence @4 :UInt8;
+  unique @5 :Bool;
+  deckLimit @6 :UInt8;
 
   union {
-    identity :group {
-      minimumDeckSize @5 :UInt8;
-      influenceLimit @6 :UInt8;
-    }
     agenda :group {
-      dummy @7 :Void;
+      advancementCost @7 :UInt8;
+      agendaPoints @8 :UInt8;
     }
-    # asset :group {}
-    # ice :group {}
-    # operation :group {}
-    # upgrade :group {}
-    # event :group {}
-    # hardware :group {}
-    # program :group {}
-    # resource :group {}
+    asset :group {
+      cost @9 :UInt8;
+      strippedText @10 :Text;
+      text @11 :Text;
+      trashCost @12 :UInt8;
+    }
+    event :group {
+      cost @13 :UInt8;
+      strippedText @14 :Text;
+      text @15 :Text;
+    }
+    hardware :group {
+      cost @16 :UInt8;
+      strippedText @17 :Text;
+      text @18 :Text;
+    }
+    ice :group {
+      cost @19 :UInt8;
+      keywords @20 :Text;
+      strength @21 :UInt8;
+      strippedText @22 :Text;
+      text @23 :Text;
+    }
+    identity :group {
+      influenceLimit @24 :UInt8;
+      keywords @25 :Text;
+      minimumDeckSize @26 :UInt8;
+    }
+    operation :group {
+      cost @27 :UInt8;
+      strippedText @28 :Text;
+      text @29 :Text;
+    }
+    program :group {
+      cost @30 :UInt8;
+      memoryCost @31 :UInt8;
+      strippedText @32 :Text;
+      text @33 :Text;
+    }
+    resource :group {
+      cost @34 :UInt8;
+      strippedText @35 :Text;
+      text @36 :Text;
+    }
+    upgrade :group {
+      cost @37 :UInt8;
+      strippedText @38 :Text;
+      text @39 :Text;
+      trashCost @40 :UInt8;
+    }
   }
 
   struct Faction {

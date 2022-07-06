@@ -15,10 +15,13 @@ from typing import (
     get_origin,
     get_type_hints,
 )
+from uuid import uuid4
 
-from netrunner.core.enum import CorpEnum, RunnerEnum
-from netrunner.core.faction import Faction, get_faction
 from netrunner.util import EnumUnion
+
+from netrunner.capnp.annotation import CapAn
+from netrunner.core.enum import CorpEnum, RunnerEnum
+from netrunner.core.faction import Faction, get_faction, serialize_faction
 
 
 class CorpCard(CorpEnum):
@@ -51,7 +54,7 @@ class NDB:
     field_names: tuple[str, ...]
     convert: Callable | None
 
-    def __init__(self, *field_name: str, convert: Callable | None = None):
+    def __init__(self, *field_name: str, convert: Callable | None = None, skip: bool = False):
         if len(field_name) > 1:
             assert convert
 
@@ -89,11 +92,17 @@ class Card:
     _ndb_type: ClassVar[NDB] = NDB("side_code", "type_code", convert=get_card_type)
     type: ClassVar[CardType]
 
-    id: Annotated[str, NDB("code")]
-    faction: Annotated[Faction, NDB("side_code", "faction_code", convert=get_faction)]
+    id: Annotated[str, NDB("code", convert=lambda _: str(uuid4()))]
+    code: str
+    faction: Annotated[
+        Faction,
+        NDB("side_code", "faction_code", convert=get_faction),
+        CapAn(convert=serialize_faction),
+    ]
     name: Annotated[str, NDB("stripped_title")]
     influence: Annotated[Literal[0, 1, 2, 3, 4, 5], NDB("faction_cost")]
     unique: Annotated[bool, NDB("uniqueness")]
+    deck_limit: int
 
     @classmethod
     def from_netrunner_db_card(cls, data: dict[str, Any]) -> Card:
@@ -119,8 +128,8 @@ class Card:
 
 @dataclass(frozen=True)
 class IdentityCard(Card):
-    minimum_deck_size: int
-    influence_limit: int
+    minimum_deck_size: Annotated[int, CapAn(group="identity")]
+    influence_limit: Annotated[int, CapAn(group="identity")]
 
 
 @dataclass(frozen=True)
@@ -136,43 +145,74 @@ class RunnerIdentityCard(IdentityCard):
 @dataclass(frozen=True)
 class AgendaCard(Card):
     type = CorpCard.agenda
+    advancement_cost: int
+    agenda_points: int
 
 
 @dataclass(frozen=True)
 class AssetCard(Card):
     type = CorpCard.asset
+    cost: int
+    stripped_text: str
+    text: str
+    trash_cost: int
 
 
 @dataclass(frozen=True)
 class IceCard(Card):
     type = CorpCard.ice
+    cost: int
+    keywords: str
+    strength: int
+    stripped_text: str
+    text: str
 
 
 @dataclass(frozen=True)
 class OperationCard(Card):
     type = CorpCard.operation
+    cost: int
+    stripped_text: str
+    text: str
 
 
 @dataclass(frozen=True)
 class UpgradeCard(Card):
     type = CorpCard.upgrade
+    cost: int
+    stripped_text: str
+    text: str
+    trash_cost: int
 
 
 @dataclass(frozen=True)
 class EventCard(Card):
     type = RunnerCard.event
+    cost: int
+    stripped_text: str
+    text: str
 
 
 @dataclass(frozen=True)
 class HardwareCard(Card):
     type = RunnerCard.hardware
+    cost: int
+    stripped_text: str
+    text: str
 
 
 @dataclass(frozen=True)
 class ProgramCard(Card):
     type = RunnerCard.program
+    cost: int
+    memory_cost: int
+    stripped_text: str
+    text: str
 
 
 @dataclass(frozen=True)
 class ResourceCard(Card):
     type = RunnerCard.resource
+    cost: int
+    stripped_text: str
+    text: str

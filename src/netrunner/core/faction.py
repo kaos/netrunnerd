@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from typing import Union, cast
 
-from netrunner.core.enum import CorpEnum, RunnerEnum
 from netrunner.util import EnumUnion
+
+from netrunner.core.enum import CorpEnum, RunnerEnum
 
 
 class RunnerFaction(RunnerEnum):
@@ -29,3 +30,10 @@ Faction = Union[CorpFaction, RunnerFaction]
 
 def get_faction(side: str, value: str) -> Faction:
     return cast(Faction, EnumUnion.find_value(Faction, value, side=side))
+
+
+def serialize_faction(faction: Faction) -> dict:
+    return dict(
+        name=faction.value,
+        side=faction._get_side(),
+    )

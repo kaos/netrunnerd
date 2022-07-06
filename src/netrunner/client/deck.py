@@ -11,6 +11,9 @@ class list_decks(command):
 
     async def do_invoke(self, list_decks: str, **kwargs):
         decks = (await self.lobby.root.listDecks(decklist=list_decks).a_wait()).decks
+
+        print(f"\nDECKS:\n{decks}\n\n")
+
         for deck in decks:
             click.echo(f"== {deck.name}")
             for entry in deck.cards:

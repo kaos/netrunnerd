@@ -4,9 +4,11 @@ import logging
 from itertools import islice
 from typing import ClassVar
 
+from netrunner.db.cardpool import create_card
 from underpants.engine import RulesEngine
 
 from netrunner import api
+from netrunner.capnp.annotation import CapAn
 from netrunner.daemon.client import ClientInfoImpl
 from netrunner.daemon.deck import DeckInfo
 from netrunner.daemon.game import GameID, GameState
@@ -50,3 +52,8 @@ class NetrunnerLobbyImpl(api.NetrunnerLobby.Server):
     def listDecks(self, decklist: str, **kwargs) -> list[api.Deck]:
         res = DeckInfo.list_decks(self.engine, decklist)
         return list(map(DeckInfo.serialize, DeckInfo.iter_decks(res)))
+
+    def viewCard(self, cardCode: str, **kwargs) -> api.Card:
+        card = CapAn.serialize_dataclass(create_card(code=cardCode))
+        print(f"serialized card: {card}")
+        return card

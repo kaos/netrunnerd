@@ -19,3 +19,12 @@ class whoami(command):
     async def do_invoke(self, whoami: bool, **kwargs):
         nick = (await self.lobby.client_info.getNick().a_wait()).nick
         click.echo(f"you are known as {nick}")
+
+
+class view_card(command):
+    click_args = ("/card",)
+    click_kwargs = dict(metavar="CODE", help="View info about card with a given card CODE.")
+
+    async def do_invoke(self, view_card: str, **kwargs):
+        card = (await self.lobby.root.viewCard(cardCode=view_card).a_wait()).card
+        click.echo(f"{card}\n")

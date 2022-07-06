@@ -8,16 +8,16 @@ import os
 import readline
 
 import click
+from netrunner.util import ainput
 
 from netrunner import api
 from netrunner.capnp.client import AsyncClient
 from netrunner.client.cmd import command, select_mode
 from netrunner.client.deck import list_decks
 from netrunner.client.game import join_game, list_games, new_game
-from netrunner.client.info import nick, whoami
+from netrunner.client.info import nick, view_card, whoami
 from netrunner.client.lobby import NetrunnerLobby
 from netrunner.client.mode import mode
-from netrunner.util import ainput
 
 
 @mode("lobby")
@@ -27,6 +27,7 @@ from netrunner.util import ainput
 @list_games.command()
 @join_game.command()
 @new_game.command()
+@view_card.command()
 @select_mode.command()
 async def mode_lobby(lobby, **kwargs):
     await command(lobby).invoke(**kwargs)
