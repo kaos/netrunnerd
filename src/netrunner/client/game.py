@@ -30,7 +30,20 @@ class list_games(command):
         else:
             pages = math.ceil(res.totalCount / page_size)
             for game in res.games:
-                click.echo(f"-- game:\n{game}")
+                click.echo(f"== {game.id.seq}:{game.id.pool}")
+                for role in ("corp", "runner"):
+                    player = getattr(game, role)
+                    if not player.deck.id:
+                        deck = ""
+                    else:
+                        deck = (
+                            f" :: {player.deck.name} :: {player.deck.identity.name} "
+                            f"[{player.deck.id}]"
+                        )
+                    click.echo(f" - {role}: {player.nickName or '<vacant>'}{deck}")
+
+                spectators = len(game.spectators)
+                click.echo(f" - {spectators} spectator{'s' if spectators != 1 else ''}")
             click.echo(f"\n// page {list_games}/{pages} || {res.totalCount} games in total\n")
 
 
@@ -47,7 +60,7 @@ def parse_game_id(ctx, param, value):
 class join_game(command):
     click_args = ("/join",)
     click_kwargs = dict(
-        type=click.Choice(("corp", "runner", "spectate")),
+        type=click.Choice(("corp", "runner", "spectator")),
         help="Join game identified by the /game option",
     )
     click_options = (

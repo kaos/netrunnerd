@@ -42,11 +42,12 @@ class NetrunnerLobbyImpl(api.NetrunnerLobby.Server):
     def newGame(self, role: api.Role, **kwargs) -> PlayerImpl:
         player = PlayerImpl.create_game(role, self.client_info)
         self.games[player.state.id] = player.state
-        print(f"New game: {player.state}")
+        print(f"{self.client_info.nick}: created game {player.state.id}")
         return player
 
     def joinGame(self, role: api.Role, gameId: api.Game.Id, **kwargs) -> PlayerImpl:
         state = self.games[GameID(**gameId.to_dict())]
+        print(f"{self.client_info.nick}: joining game {state.id}...")
         return PlayerImpl.join_game(role, state, self.client_info)
 
     def listDecks(self, decklist: str, **kwargs) -> list[api.Deck]:

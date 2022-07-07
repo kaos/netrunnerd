@@ -30,7 +30,7 @@ class Player:
     cards: tuple[CardState, ...] = ()
 
     @classmethod
-    def create(cls) -> Player:
+    def create(cls, deck: Deck | None = None) -> Player:
         raise NotImplementedError()
 
     @property
@@ -56,8 +56,8 @@ class Corp(Player):
     """The Corp role."""
 
     @classmethod
-    def create(cls) -> Player:
-        return cls(role=Role.corp)
+    def create(cls, deck: Deck | None = None) -> Player:
+        return cls(deck=deck, role=Role.corp)
 
     @property
     def RnD(self) -> Iterator[CardState]:
@@ -77,8 +77,8 @@ class Runner(Player):
     """The Runner role."""
 
     @classmethod
-    def create(cls) -> Player:
-        return cls(role=Role.runner)
+    def create(cls, deck: Deck | None = None) -> Player:
+        return cls(deck=deck, role=Role.runner)
 
     @property
     def stack(self) -> Iterator[CardState]:

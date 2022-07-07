@@ -11,6 +11,7 @@ class ClientInfoImpl(api.ClientInfo.Server):
 
     def __init__(self, nick: str):
         self.nick = nick
+        self.deck = None
 
     def getNick(self, **kwargs) -> str:
         return self.nick
