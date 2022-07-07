@@ -112,7 +112,7 @@ class show_game(command):
         is_flag=False,
         flag_value=0,
         type=int,
-        help="Show current game, or N next game.",
+        help="Show current game (N = 0), or the N:th next game.",
     )
 
     async def do_invoke(self, show_game: int, **kwargs):

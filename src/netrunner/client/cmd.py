@@ -32,6 +32,8 @@ class command:
 
     @classmethod
     def command(cls, *args, **kwargs) -> Callable[..., Any] | click.Command:
+        """Mode command decorator, to register a subclassed command on a mode
+        (click.option)."""
         names = (cls.__name__, f"/{cls.__name__.replace('_', '-')}")
         args = cls.click_args + args
         if not any(arg in names for arg in args):

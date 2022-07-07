@@ -16,7 +16,7 @@ from netrunner.client.deck import list_decks, select_deck, show_deck
 from netrunner.client.game import join_game, list_games, new_game, show_game
 from netrunner.client.info import nick, view_card, whoami
 from netrunner.client.lobby import NetrunnerLobby
-from netrunner.client.mode import mode
+from netrunner.client.mode import AbortModeSwitch, mode
 from netrunner.util import ainput
 
 
@@ -40,6 +40,12 @@ async def mode_lobby(lobby, **kwargs):
 @select_mode.command()
 async def mode_game(lobby, **kwargs):
     await command(lobby).invoke(**kwargs)
+
+
+@mode.on_enter.connect_via(mode_game)
+def on_enter_game(sender: click.Command, lobby: NetrunnerLobby):
+    if not lobby.games:
+        raise AbortModeSwitch("no active games.")
 
 
 @click.command("netrunner")
@@ -77,7 +83,7 @@ async def client_connect(address, port, init_args):
     connection = await AsyncClient.connect(address, port, bootstrap_cls=api.schema.NetrunnerLobby)
     root = connection.interface
     myself = await root.myself().a_wait()
-    lobby = NetrunnerLobby(root=root, client_info=myself.info, cmd=mode_lobby)
+    lobby = NetrunnerLobby(root=root, client_info=myself.info, cmd_mode=mode_lobby)
     for args in init_args:
         await apply_args(lobby, args)
     coroutines = [run(lobby)]
@@ -87,7 +93,7 @@ async def client_connect(address, port, init_args):
 
 async def run(lobby):
     while True:
-        args = await ainput(f"#{lobby.cmd.name} $ ")
+        args = await ainput(f"#{lobby.cmd_mode.name} $ ")
         if not args:
             continue
         if args == ["q"]:
@@ -98,11 +104,11 @@ async def run(lobby):
 
 async def apply_args(lobby, args):
     try:
-        res = lobby.cmd(prog_name="$", args=args, obj=lobby, standalone_mode=False)
+        res = lobby.cmd_mode(prog_name="$", args=args, obj=lobby, standalone_mode=False)
         if inspect.isawaitable(res):
             await res
     except Exception as e:
-        click.echo(f"ERROR in {lobby.cmd.name}: {e}\n\nTry /help for usage.\n")
+        click.echo(f"ERROR in {lobby.cmd_mode.name}: {e}\n\nTry /help for usage.\n")
 
 
 if __name__ == "__main__":
