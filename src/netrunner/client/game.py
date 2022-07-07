@@ -108,7 +108,11 @@ class new_game(command):
 class show_game(command):
     click_args = ("/show",)
     click_kwargs = dict(
-        metavar="N", is_flag=False, flag_value=0, help="Show current game, or N next game."
+        metavar="N",
+        is_flag=False,
+        flag_value=0,
+        type=int,
+        help="Show current game, or N next game.",
     )
 
     async def do_invoke(self, show_game: int, **kwargs):

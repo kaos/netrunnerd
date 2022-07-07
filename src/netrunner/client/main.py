@@ -98,7 +98,7 @@ async def run(lobby):
 
 async def apply_args(lobby, args):
     try:
-        res = lobby.cmd(prog_name=lobby.cmd.name, args=args, obj=lobby, standalone_mode=False)
+        res = lobby.cmd(prog_name="$", args=args, obj=lobby, standalone_mode=False)
         if inspect.isawaitable(res):
             await res
     except Exception as e:

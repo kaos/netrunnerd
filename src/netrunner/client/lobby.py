@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import click
 
@@ -16,7 +16,7 @@ class NetrunnerLobby:
     root: api.NetrunnerLobby
     client_info: api.ClientInfo
     cmd: click.Command
-    games: list[api.Player]
+    games: list[api.Player] = field(default_factory=list)
 
     def switch_mode(self, next_mode: str | None) -> None:
         if not next_mode:
@@ -26,4 +26,4 @@ class NetrunnerLobby:
             return
 
         self.cmd = mode.registry[next_mode]
-        click.echo(f"switched to #{self.cmd.name}")
+        click.echo(f"switched to #{next_mode}")
