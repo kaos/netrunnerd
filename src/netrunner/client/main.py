@@ -13,7 +13,7 @@ from netrunner import api
 from netrunner.capnp.client import AsyncClient
 from netrunner.client.cmd import command, select_mode
 from netrunner.client.deck import list_decks, select_deck, show_deck
-from netrunner.client.game import join_game, list_games, new_game
+from netrunner.client.game import join_game, list_games, new_game, show_game
 from netrunner.client.info import nick, view_card, whoami
 from netrunner.client.lobby import NetrunnerLobby
 from netrunner.client.mode import mode
@@ -36,6 +36,7 @@ async def mode_lobby(lobby, **kwargs):
 
 
 @mode("game")
+@show_game.command()
 @select_mode.command()
 async def mode_game(lobby, **kwargs):
     await command(lobby).invoke(**kwargs)

@@ -4,10 +4,9 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Iterator
 
-from netrunner.core.card_state import CardState
+from netrunner.core.card_state import Cards
 from netrunner.core.deck import Deck
 from netrunner.core.error import GameError
-from netrunner.core.zone import GameZone
 
 
 class Role(Enum):
@@ -27,7 +26,8 @@ class Player:
 
     role: Role
     deck: Deck | None = None
-    cards: tuple[CardState, ...] = ()
+    cards: Cards = Cards()
+    credit_pool: int = 0
 
     @classmethod
     def create(cls, deck: Deck | None = None) -> Player:
@@ -45,11 +45,6 @@ class Player:
         else:
             yield PlayerError("missing deck", player=self)
 
-    def get_cards(self, zone: GameZone) -> Iterator[CardState]:
-        for state in self.cards:
-            if state.zone is zone:
-                yield state
-
 
 @dataclass(frozen=True)
 class Corp(Player):
@@ -59,17 +54,17 @@ class Corp(Player):
     def create(cls, deck: Deck | None = None) -> Player:
         return cls(deck=deck, role=Role.corp)
 
-    @property
-    def RnD(self) -> Iterator[CardState]:
-        return self.get_cards(GameZone.deck)
+    # @property
+    # def RnD(self) -> Iterator[CardState]:
+    #     return self.cards.in_zone(GameZone.deck)
 
-    @property
-    def HQ(self) -> Iterator[CardState]:
-        return self.get_cards(GameZone.hand)
+    # @property
+    # def HQ(self) -> Iterator[CardState]:
+    #     return self.cards.in_zone(GameZone.hand)
 
-    @property
-    def archives(self) -> Iterator[CardState]:
-        return self.get_cards(GameZone.discard)
+    # @property
+    # def archives(self) -> Iterator[CardState]:
+    #     return self.cards.in_zone(GameZone.discard)
 
 
 @dataclass(frozen=True)
@@ -80,14 +75,14 @@ class Runner(Player):
     def create(cls, deck: Deck | None = None) -> Player:
         return cls(deck=deck, role=Role.runner)
 
-    @property
-    def stack(self) -> Iterator[CardState]:
-        return self.get_cards(GameZone.deck)
+    # @property
+    # def stack(self) -> Iterator[CardState]:
+    #     return self.cards.in_zone(GameZone.deck)
 
-    @property
-    def grip(self) -> Iterator[CardState]:
-        return self.get_cards(GameZone.hand)
+    # @property
+    # def grip(self) -> Iterator[CardState]:
+    #     return self.cards.in_zone(GameZone.hand)
 
-    @property
-    def heap(self) -> Iterator[CardState]:
-        return self.get_cards(GameZone.discard)
+    # @property
+    # def heap(self) -> Iterator[CardState]:
+    #     return self.cards.in_zone(GameZone.discard)

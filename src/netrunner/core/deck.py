@@ -7,22 +7,9 @@ from typing import Annotated, Iterator, Sequence, TypeVar, overload
 
 from netrunner.annotations import NDB
 from netrunner.core.card import Card, IdentityCard
-from netrunner.core.error import GameError
+from netrunner.core.error import DeckCardLimitError, DeckError, DeckInfluenceOverspentError
 
 T = TypeVar("T")
-
-
-class DeckError(GameError):
-    """Deck error base class."""
-
-
-class DeckCardLimitError(DeckError):
-    """Deck has not enough cards."""
-
-    def __init__(self, num_cards: int, min_cards: int) -> None:
-        self.num_cards = num_cards
-        self.min_cards = min_cards
-        super().__init__(f"{num_cards} is less than {min_cards}.")
 
 
 @dataclass(frozen=True)
@@ -61,6 +48,15 @@ class Deck:
         min_cards = self.identity.minimum_deck_size
         if num_cards < min_cards:
             yield DeckCardLimitError(num_cards, min_cards)
+
+        influence_limit = self.identity.influence_limit
+        influence_used = sum(
+            deck_card.count * deck_card.card.influence
+            for deck_card in self.cards
+            if deck_card.card.faction != self.identity.faction
+        )
+        if influence_used > influence_limit:
+            yield DeckInfluenceOverspentError(influence_limit, influence_used)
 
     @overload
     def shuffle(self, cards: Sequence[T]) -> Iterator[T]:

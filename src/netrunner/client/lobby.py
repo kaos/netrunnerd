@@ -16,6 +16,7 @@ class NetrunnerLobby:
     root: api.NetrunnerLobby
     client_info: api.ClientInfo
     cmd: click.Command
+    games: list[api.Player]
 
     def switch_mode(self, next_mode: str | None) -> None:
         if not next_mode:

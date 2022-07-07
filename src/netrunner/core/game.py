@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Iterator, cast
 
+from netrunner.core.card_state import Cards
 from netrunner.core.error import GameError
 from netrunner.core.player import Corp, Player, Role, Runner
 
@@ -38,8 +39,22 @@ class Game:
         raise RuntimeError(f"No player with role: {role}.")
 
     def check(self) -> Iterator[GameError]:
+        if len(self.players) != 2:
+            yield GameError(f"Wrong number of participant players: {len(self.players)}.")
         for player in self.players:
             yield from player.check()
 
-    def setup(self) -> None:
-        pass
+    def setup(self) -> Game:
+        # § 1.6.4. Each player takes 5 credits from the bank.
+        # § 1.6.5. Each player shuffles their deck.
+        # § 1.6.6. Each player draws 5 cards.
+        players = tuple(
+            replace(
+                player,
+                credit_pool=5,
+                cards=Cards.init(player.deck.shuffle()).draw(5),
+            )
+            for player in self.players
+            if player.deck is not None
+        )
+        return replace(self, players=players)

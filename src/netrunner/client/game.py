@@ -85,6 +85,8 @@ class join_game(command):
             return
 
         player = (await self.lobby.root.joinGame(role=join_game, gameId=game_id).a_wait()).player
+        self.lobby.games.append(player)
+
         click.echo(f"joined game {await player.getInfo().a_wait()}")
         if not self.next_mode:
             self.next_mode = "game"
@@ -96,6 +98,20 @@ class new_game(command):
 
     async def do_invoke(self, new_game: str, **kwargs):
         player = (await self.lobby.root.newGame(role=new_game).a_wait()).player
+        self.lobby.games.append(player)
+
         click.echo(f"created game for {await player.getInfo().a_wait()}")
         if not self.next_mode:
             self.next_mode = "game"
+
+
+class show_game(command):
+    click_args = ("/show",)
+    click_kwargs = dict(
+        metavar="N", is_flag=False, flag_value=0, help="Show current game, or N next game."
+    )
+
+    async def do_invoke(self, show_game: int, **kwargs):
+        game = (await self.lobby.games[show_game].getGame().a_wait()).game
+
+        click.echo(f"Game:\n{game}\n")

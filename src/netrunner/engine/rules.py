@@ -9,11 +9,13 @@ from netrunner.engine.types import BeginGame, Decklist, DecklistRequest, GameSta
 
 @rule
 async def begin(begin: BeginGame) -> GameState:
-    """Prepare for a new game."""
+    """Prepare for a new game.
+
+    § 1.6.
+    """
     game = begin.game
     GameError.assert_no_issues(game.check())
-    game.setup()
-    return GameState(game, turn=0)
+    return GameState(game.setup(), turn=0)
 
 
 @rule

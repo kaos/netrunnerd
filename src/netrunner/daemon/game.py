@@ -94,7 +94,7 @@ class Participant:
 
         participant = {
             "nickName": attendee.nick,
-            "cards": [CapAn.serialize_dataclass(card) for card in self.player.cards],
+            "cards": [CapAn.serialize_dataclass(card) for card in self.player.cards.all_cards],
         }
         deck = self.player.deck
         if deck:
