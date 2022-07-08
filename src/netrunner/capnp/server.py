@@ -56,7 +56,7 @@ class AsyncServer:
                 logger.error(f"{self}: Unknown myreader err: {err}")
                 return False
             await self.server.write(data)
-        logger.debug(f"{self}: myreader done.")
+        logger.trace(f"{self}: myreader done.")
         return True
 
     async def mywriter(self):
@@ -71,12 +71,13 @@ class AsyncServer:
             except Exception as err:
                 logger.error(f"{self}: Unknown mywriter err: {err}")
                 return False
-        logger.debug(f"{self}: mywriter done.")
+        logger.trace(f"{self}: mywriter done.")
         return True
 
     async def myserver(self, reader, writer):
         # Start TwoPartyServer using TwoWayPipe (only requires bootstrap)
-        self.server = capnp.TwoPartyServer(bootstrap=self.bootstrap_cls())
+        bootstrap = self.bootstrap_cls()
+        self.server = capnp.TwoPartyServer(bootstrap=bootstrap)
         self.reader = reader
         self.writer = writer
         self.retry = True
@@ -95,3 +96,6 @@ class AsyncServer:
 
         # Make wait for reader/writer to finish (prevent possible resource leaks)
         await tasks
+
+        logger.debug(f"{bootstrap.client_info.getNick()}: signed off.")
+        bootstrap.close()

@@ -8,10 +8,9 @@ import os
 import readline
 
 import click
-from netrunner.capnp.client import AsyncClient
-from netrunner.util import ainput
 
 from netrunner import api
+from netrunner.capnp.client import AsyncClient
 from netrunner.client.cmd import command, select_mode
 from netrunner.client.deck import list_decks, select_deck, show_deck
 from netrunner.client.game import join_game, list_games, new_game, show_game
@@ -20,6 +19,7 @@ from netrunner.client.lobby import NetrunnerLobby
 from netrunner.client.message import MessageLinkImpl, Messages
 from netrunner.client.mode import AbortModeSwitch, mode
 from netrunner.client.msg import send_msg
+from netrunner.util import ainput
 
 
 @mode("lobby")

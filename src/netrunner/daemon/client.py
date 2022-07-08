@@ -1,9 +1,8 @@
 from __future__ import annotations
 
+from netrunner import api
 from netrunner.annotations import CapAn
 from netrunner.core.deck import Deck
-
-from netrunner import api
 from netrunner.daemon.message import MessageLinkImpl
 
 
@@ -19,8 +18,13 @@ class ClientInfoImpl(api.ClientInfo.Server):
         self.msg_receiver = None
         self.msg_sender = msg_sender
 
+    def close(self):
+        self.nick = ""
+        self.msg_receiver = None
+        self.deck = None
+
     def getNick(self, **kwargs) -> str:
-        return self.nick
+        return self.nick or "<no nick>"
 
     def setNick(self, nick: str, password: str, **kwargs) -> None:
         print(f"Change nick {self.nick} -> {nick}")

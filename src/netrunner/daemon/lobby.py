@@ -2,37 +2,61 @@ from __future__ import annotations
 
 import logging
 from itertools import islice
+from queue import Queue
 from typing import ClassVar
 
-from netrunner.annotations import CapAn
-from netrunner.db.cardpool import create_card
 from underpants.engine import RulesEngine
 
 from netrunner import api
+from netrunner.annotations import CapAn
 from netrunner.daemon.client import ClientInfoImpl
 from netrunner.daemon.deck import DeckInfo
 from netrunner.daemon.game import GameID, GameState
 from netrunner.daemon.message import MessageLinkImpl
 from netrunner.daemon.player import PlayerImpl
+from netrunner.db.cardpool import create_card
 
 logger = logging.getLogger(__name__)
 
 
 class NetrunnerLobbyImpl(api.NetrunnerLobby.Server):
+    _inst: ClassVar[Queue] = Queue()
     engine: ClassVar[RulesEngine]
     games: ClassVar[dict[GameID, GameState]] = {}
     lobbies: ClassVar[list[NetrunnerLobbyImpl]] = []
 
     client_info: ClientInfoImpl
 
+    def __new__(cls):
+        if not cls._inst.empty():
+            return cls._inst.get_nowait()
+        else:
+            return super().__new__(cls)
+
     def __init__(self):
+        self.client_info = ClientInfoImpl("", MessageLinkImpl(self.deliver_message))
+        self.init()
+
+    def init(self):
         logger.info("client connected")
-        self.client_info = ClientInfoImpl("<no nick>", MessageLinkImpl(self.deliver_message))
         self.lobbies.append(self)
 
     def __del__(self):
+        self.close()
+
+    def close(self):
+        self.client_info.close()
+
         if self in self.lobbies:
+            logger.info(f"remove lobby {self}")
             self.lobbies.remove(self)
+
+        self._inst.put_nowait(self)
+
+    def broadcast(self, message: str):
+        nick = self.client_info.getNick()
+        for lobby in self.lobbies:
+            lobby.client_info.send_message(nick, message)
 
     def deliver_message(self, nick: str, message: str):
         for lobby in self.lobbies:
