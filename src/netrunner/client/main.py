@@ -8,16 +8,18 @@ import os
 import readline
 
 import click
+from netrunner.capnp.client import AsyncClient
+from netrunner.util import ainput
 
 from netrunner import api
-from netrunner.capnp.client import AsyncClient
 from netrunner.client.cmd import command, select_mode
 from netrunner.client.deck import list_decks, select_deck, show_deck
 from netrunner.client.game import join_game, list_games, new_game, show_game
 from netrunner.client.info import nick, view_card, whoami
 from netrunner.client.lobby import NetrunnerLobby
+from netrunner.client.message import MessageLinkImpl, Messages
 from netrunner.client.mode import AbortModeSwitch, mode
-from netrunner.util import ainput
+from netrunner.client.msg import send_msg
 
 
 @mode("lobby")
@@ -30,6 +32,7 @@ from netrunner.util import ainput
 @join_game.command()
 @new_game.command()
 @view_card.command()
+@send_msg.command()
 @select_mode.command()
 async def mode_lobby(lobby, **kwargs):
     await command(lobby).invoke(**kwargs)
@@ -83,7 +86,14 @@ async def client_connect(address, port, init_args):
     connection = await AsyncClient.connect(address, port, bootstrap_cls=api.schema.NetrunnerLobby)
     root = connection.interface
     myself = await root.myself().a_wait()
-    lobby = NetrunnerLobby(root=root, client_info=myself.info, cmd_mode=mode_lobby)
+    msg_receiver = MessageLinkImpl()
+    msg_sender = (await myself.info.messages(receiver=msg_receiver).a_wait()).sender
+    lobby = NetrunnerLobby(
+        root=root,
+        client_info=myself.info,
+        cmd_mode=mode_lobby,
+        messages=Messages(receiver=msg_receiver, sender=msg_sender),
+    )
     for args in init_args:
         await apply_args(lobby, args)
     coroutines = [run(lobby)]

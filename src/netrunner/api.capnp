@@ -16,6 +16,11 @@ interface ClientInfo {
   registerNick @2 (nick :Text, password :Text);
   getDeck @3 () -> (deck :Deck);
   setDeck @4 (deck :Deck);
+  messages @5 (receiver :MessageLink) -> (sender :MessageLink);
+
+  interface MessageLink {
+    message @0 (nick :Text, message :Text) -> ();
+  }
 }
 
 interface Player {

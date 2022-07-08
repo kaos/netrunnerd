@@ -4,15 +4,16 @@ import logging
 from itertools import islice
 from typing import ClassVar
 
+from netrunner.annotations import CapAn
+from netrunner.db.cardpool import create_card
 from underpants.engine import RulesEngine
 
 from netrunner import api
-from netrunner.annotations import CapAn
 from netrunner.daemon.client import ClientInfoImpl
 from netrunner.daemon.deck import DeckInfo
 from netrunner.daemon.game import GameID, GameState
+from netrunner.daemon.message import MessageLinkImpl
 from netrunner.daemon.player import PlayerImpl
-from netrunner.db.cardpool import create_card
 
 logger = logging.getLogger(__name__)
 
@@ -20,12 +21,24 @@ logger = logging.getLogger(__name__)
 class NetrunnerLobbyImpl(api.NetrunnerLobby.Server):
     engine: ClassVar[RulesEngine]
     games: ClassVar[dict[GameID, GameState]] = {}
+    lobbies: ClassVar[list[NetrunnerLobbyImpl]] = []
 
     client_info: ClientInfoImpl
 
     def __init__(self):
         logger.info("client connected")
-        self.client_info = ClientInfoImpl("<no nick>")
+        self.client_info = ClientInfoImpl("<no nick>", MessageLinkImpl(self.deliver_message))
+        self.lobbies.append(self)
+
+    def __del__(self):
+        if self in self.lobbies:
+            self.lobbies.remove(self)
+
+    def deliver_message(self, nick: str, message: str):
+        for lobby in self.lobbies:
+            if lobby.client_info.nick == nick:
+                print(f"msg {self.client_info.nick} -> {nick}: {message}")
+                return lobby.client_info.send_message(self.client_info.nick, message)
 
     def myself(self, **kwargs) -> ClientInfoImpl:
         return self.client_info
