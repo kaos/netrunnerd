@@ -8,6 +8,7 @@ interface NetrunnerLobby {
 
   listDecks @4 (decklist :Text) -> (decks :List(Deck));
   viewCard @5 (cardCode :Text) -> (card :Card);
+  online @6 () -> (users :List(Text));
 }
 
 interface ClientInfo {

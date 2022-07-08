@@ -28,3 +28,12 @@ class view_card(command):
     async def do_invoke(self, view_card: str, **kwargs):
         card = (await self.lobby.root.viewCard(cardCode=view_card).a_wait()).card
         click.echo(f"{card}\n")
+
+
+class online(command):
+    click_kwargs = dict(is_flag=True, default=None, help="List online users.")
+
+    async def do_invoke(self, **kwargs):
+        users = (await self.lobby.root.online().a_wait()).users
+        for user in users:
+            click.echo(f" - {user}")

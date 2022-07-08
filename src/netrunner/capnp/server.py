@@ -97,5 +97,5 @@ class AsyncServer:
         # Make wait for reader/writer to finish (prevent possible resource leaks)
         await tasks
 
-        logger.debug(f"{bootstrap.client_info.getNick()}: signed off.")
+        logger.info(f"{bootstrap}: signed off.")
         bootstrap.close()

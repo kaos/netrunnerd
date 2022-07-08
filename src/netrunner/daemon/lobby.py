@@ -19,6 +19,14 @@ from netrunner.db.cardpool import create_card
 logger = logging.getLogger(__name__)
 
 
+class NickTakenError(Exception):
+    pass
+
+
+class NickNotSetError(Exception):
+    pass
+
+
 class NetrunnerLobbyImpl(api.NetrunnerLobby.Server):
     _inst: ClassVar[Queue] = Queue()
     engine: ClassVar[RulesEngine]
@@ -44,21 +52,42 @@ class NetrunnerLobbyImpl(api.NetrunnerLobby.Server):
     def __del__(self):
         self.close()
 
-    def close(self):
-        self.client_info.close()
+    def __str__(self):
+        return self.client_info.getNick()
 
+    def __repr__(self):
+        return f"<Lobby: {self}>"
+
+    def close(self):
         if self in self.lobbies:
-            logger.info(f"remove lobby {self}")
+            logger.debug(f"remove lobby {self}")
             self.lobbies.remove(self)
 
+        self.client_info.close()
         self._inst.put_nowait(self)
 
+    @ClientInfoImpl.on_change_nick.connect
+    def on_change_nick(sender: ClientInfoImpl, nick: str, password: str):
+        for lobby in NetrunnerLobbyImpl.lobbies:
+            if sender is lobby.client_info:
+                continue
+            if lobby.client_info.nick == nick:
+                raise NickTakenError(
+                    f"Can not change nick name to {nick!r}, as it is already in use."
+                )
+
+    def check_nick(self):
+        if not self.client_info.nick:
+            raise NickNotSetError("Nick name required.")
+
     def broadcast(self, message: str):
+        self.check_nick()
         nick = self.client_info.getNick()
         for lobby in self.lobbies:
             lobby.client_info.send_message(nick, message)
 
     def deliver_message(self, nick: str, message: str):
+        self.check_nick()
         for lobby in self.lobbies:
             if lobby.client_info.nick == nick:
                 print(f"msg {self.client_info.nick} -> {nick}: {message}")
@@ -77,12 +106,14 @@ class NetrunnerLobbyImpl(api.NetrunnerLobby.Server):
         ], len(self.games)
 
     def newGame(self, role: api.Role, **kwargs) -> PlayerImpl:
+        self.check_nick()
         player = PlayerImpl.create_game(role, self.client_info)
         self.games[player.state.id] = player.state
         print(f"{self.client_info.nick}: created game {player.state.id}")
         return player
 
     def joinGame(self, role: api.Role, gameId: api.Game.Id, **kwargs) -> PlayerImpl:
+        self.check_nick()
         state = self.games[GameID(**gameId.to_dict())]
         print(f"{self.client_info.nick}: joining game {state.id}...")
         return PlayerImpl.join_game(role, state, self.client_info)
@@ -94,3 +125,6 @@ class NetrunnerLobbyImpl(api.NetrunnerLobby.Server):
     def viewCard(self, cardCode: str, **kwargs) -> api.Card:
         card = CapAn.serialize_dataclass(create_card(code=cardCode))
         return card
+
+    def online(self, **kwargs) -> list[str]:
+        return list(map(str, self.lobbies))

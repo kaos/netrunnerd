@@ -1,12 +1,20 @@
 from __future__ import annotations
 
+from blinker import Signal
+
 from netrunner import api
 from netrunner.annotations import CapAn
 from netrunner.core.deck import Deck
 from netrunner.daemon.message import MessageLinkImpl
 
 
+class InvalidNickName(Exception):
+    pass
+
+
 class ClientInfoImpl(api.ClientInfo.Server):
+    on_change_nick = Signal()
+
     nick: str
     deck: Deck | None
     msg_receiver: api.ClientInfo.MessageLink | None
@@ -27,7 +35,14 @@ class ClientInfoImpl(api.ClientInfo.Server):
         return self.nick or "<no nick>"
 
     def setNick(self, nick: str, password: str, **kwargs) -> None:
-        print(f"Change nick {self.nick} -> {nick}")
+        if len(nick) < 2:
+            raise InvalidNickName("Nick name must be at least 2 characters long.")
+
+        self.on_change_nick.send(self, nick=nick, password=password)
+        if self.nick:
+            print(f"change nick {self.nick} -> {nick}")
+        else:
+            print(f"set nick {nick}")
         self.nick = nick
 
     def registerNick(self, nick: str, password: str, **kwargs) -> None:

@@ -14,7 +14,7 @@ from netrunner.capnp.client import AsyncClient
 from netrunner.client.cmd import command, select_mode
 from netrunner.client.deck import list_decks, select_deck, show_deck
 from netrunner.client.game import join_game, list_games, new_game, show_game
-from netrunner.client.info import nick, view_card, whoami
+from netrunner.client.info import nick, online, view_card, whoami
 from netrunner.client.lobby import NetrunnerLobby
 from netrunner.client.message import MessageLinkImpl, Messages
 from netrunner.client.mode import AbortModeSwitch, mode
@@ -23,17 +23,18 @@ from netrunner.util import ainput
 
 
 @mode("lobby")
-@nick.command()
-@whoami.command()
-@list_decks.command()
-@select_deck.command()
-@show_deck.command()
-@list_games.command()
 @join_game.command()
+@list_decks.command()
+@list_games.command()
 @new_game.command()
-@view_card.command()
-@send_msg.command()
+@nick.command()
+@online.command()
+@select_deck.command()
 @select_mode.command()
+@send_msg.command()
+@show_deck.command()
+@view_card.command()
+@whoami.command()
 async def mode_lobby(lobby, **kwargs):
     await command(lobby).invoke(**kwargs)
 
